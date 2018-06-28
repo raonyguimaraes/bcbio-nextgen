@@ -171,7 +171,7 @@ def _run_qc_tools(bam_file, data):
             # Check for files only output
             if "base" in out:
                 qc_files = out
-        elif out and isinstance(out, basestring) and os.path.exists(out):
+        elif out and isinstance(out, str) and os.path.exists(out):
             qc_files = {"base": out, "secondary": []}
         if not qc_files:
             qc_files = _organize_qc_files(program_name, cur_qc_dir)
@@ -246,7 +246,7 @@ def _combine_qc_samples(samples):
         batch = tuple(batch)
         by_bam[(dd.get_align_bam(data) or dd.get_work_bam(data), batch)].append(data)
     out = []
-    for data_group in by_bam.values():
+    for data_group in list(by_bam.values()):
         data = data_group[0]
         alg_qc = []
         qc = {}
@@ -299,10 +299,10 @@ def _merge_metadata(samples):
     sample_metrics = collections.defaultdict(dict)
     for s in samples:
         m = tz.get_in(['metadata'], s)
-        if isinstance(m, basestring):
+        if isinstance(m, str):
             m = json.loads(m)
         if m:
-            for me in m.keys():
+            for me in list(m.keys()):
                 if isinstance(m[me], list) or isinstance(m[me], dict) or isinstance(m[me], tuple):
                     m.pop(me, None)
             sample_metrics[dd.get_sample_name(s)].update(m)
@@ -340,7 +340,7 @@ def _add_researcher_summary(samples, summary_yaml):
         if researcher:
             by_researcher[researcher].append(data["description"])
     out_by_researcher = {}
-    for researcher, descrs in by_researcher.items():
+    for researcher, descrs in list(by_researcher.items()):
         out_by_researcher[researcher] = _summary_csv_by_researcher(summary_yaml, researcher,
                                                                    set(descrs), samples[0][0])
     out = []

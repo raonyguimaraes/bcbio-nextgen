@@ -19,7 +19,7 @@ def get_max_counts(samples):
     for data in (x[0] for x in samples):
         count = tz.get_in(["config", "algorithm", "callable_count"], data, 1)
         vcs = tz.get_in(["config", "algorithm", "variantcaller"], data, [])
-        if isinstance(vcs, basestring):
+        if isinstance(vcs, str):
             vcs = [vcs]
         if vcs:
             count *= len(vcs)
@@ -105,7 +105,7 @@ def _add_combine_info(output, combine_map, file_key):
     to merge, enabling other splits and recombines without losing information.
     """
     files_per_output = collections.defaultdict(list)
-    for part_file, out_file in combine_map.items():
+    for part_file, out_file in list(combine_map.items()):
         files_per_output[out_file].append(part_file)
     out_by_file = collections.defaultdict(list)
     out = []
@@ -125,7 +125,7 @@ def _add_combine_info(output, combine_map, file_key):
                 out_by_file[cur_file].append(data)
             else:
                 out.append([data])
-    for samples in out_by_file.values():
+    for samples in list(out_by_file.values()):
         regions = [x["region"] for x in samples]
         region_bams = [x["work_bam"] for x in samples]
         assert len(regions) == len(region_bams)

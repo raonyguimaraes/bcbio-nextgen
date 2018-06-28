@@ -3,7 +3,7 @@
 Required configurable variables in upload:
   dir
 """
-from __future__ import print_function
+
 import collections
 import os
 import shutil
@@ -41,7 +41,7 @@ def _galaxy_tool_copy(finfo, outputs):
     XXX Needs generalization
     """
     tool_map = {"align": "bam", "variants": "vcf.gz"}
-    for galaxy_key, finfo_type in tool_map.items():
+    for galaxy_key, finfo_type in list(tool_map.items()):
         if galaxy_key in outputs and finfo.get("type") == finfo_type:
             shutil.copy(finfo["path"], outputs[galaxy_key])
 

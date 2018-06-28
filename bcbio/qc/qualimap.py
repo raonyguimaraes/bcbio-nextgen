@@ -107,7 +107,7 @@ def _parse_qualimap_metrics(report_file, data):
         if "qualimap_full" not in tz.get_in(("config", "algorithm", "tools_on"), data, []):
             metric += "_qualimap_1e7reads_est"
         new_names.append(metric)
-    out = dict(zip(new_names, out.values()))
+    out = dict(list(zip(new_names, list(out.values()))))
     return out
 
 def _parse_num_pct(k, v):
@@ -198,7 +198,7 @@ def _parse_metrics(metrics):
             return 0
 
     total_reads = sum([_safe_int(metrics[name]) for name in total])
-    out.update({key: val for key, val in metrics.items() if key in correct})
+    out.update({key: val for key, val in list(metrics.items()) if key in correct})
     [metrics.update({name: 1.0 * float(metrics[name]) / 100}) for name in
      percentages]
     for name in to_change:
@@ -262,8 +262,8 @@ def _detect_rRNA(data):
     if not (transcripts and quant and utils.file_exists(quant)):
         return {'rRNA': "NA", "rRNA_rate": "NA"}
     sample_table = pd.read_csv(quant, sep="\t")
-    rrna_exp = map(float, sample_table[sample_table["Name"].isin(transcripts)]["NumReads"])
-    total_exp = map(float, sample_table["NumReads"])
+    rrna_exp = list(map(float, sample_table[sample_table["Name"].isin(transcripts)]["NumReads"]))
+    total_exp = list(map(float, sample_table["NumReads"]))
     rrna = sum(rrna_exp)
     if sum(total_exp) == 0:
         return {'rRNA': str(rrna), 'rRNA_rate': "NA"}
@@ -366,10 +366,9 @@ def _find_qualimap_secondary_files(results_dir, base_file):
         """Problematic files with characters that make some CWL runners unhappy.
         """
         return x.find("(") >= 0 or x.find(")") >= 0 or x.find(" ") >= 0
-    return filter(lambda x: not is_problem_file(x),
-                  filter(not_dup,
+    return [x for x in list(filter(not_dup,
                          glob.glob(os.path.join(results_dir, 'qualimapReport.html')) +
                          glob.glob(os.path.join(results_dir, '*.txt')) +
                          glob.glob(os.path.join(results_dir, "css", "*")) +
                          glob.glob(os.path.join(results_dir, "raw_data_qualimapReport", "*")) +
-                         glob.glob(os.path.join(results_dir, "images_qualimapReport", "*"))))
+                         glob.glob(os.path.join(results_dir, "images_qualimapReport", "*")))) if not is_problem_file(x)]

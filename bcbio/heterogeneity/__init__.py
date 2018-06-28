@@ -5,7 +5,7 @@ sub-clonal populations within a potentially mixed population. This attempts
 to infer these sub-clones to help improve variant calls and interpretation
 especially in complex cancer samples.
 """
-from __future__ import print_function
+
 import collections
 
 from bcbio import utils
@@ -103,7 +103,7 @@ def run(items, run_parallel):
     """
     to_process = []
     extras = []
-    for batch, cur_items in _group_by_batches(items).items():
+    for batch, cur_items in list(_group_by_batches(items).items()):
         if _ready_for_het_analysis(cur_items):
             to_process.append((batch, cur_items))
         else:
@@ -121,5 +121,5 @@ def _group_by_sample_and_batch(samples):
     out = collections.defaultdict(list)
     for data in [utils.to_single_data(x) for x in samples]:
         out[(dd.get_sample_name(data), dd.get_align_bam(data), tuple(_get_batches(data)))].append(data)
-    return [[xs[0]] for xs in out.values()]
+    return [[xs[0]] for xs in list(out.values())]
 

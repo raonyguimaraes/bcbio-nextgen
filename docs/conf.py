@@ -40,8 +40,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bcbio-nextgen'
-copyright = u'2017, bcbio-nextgen contributors'
+project = 'bcbio-nextgen'
+copyright = '2017, bcbio-nextgen contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -184,8 +184,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'bcbio_nextgen.tex', u'bcbio\\_nextgen Documentation',
-   u'Brad Chapman', 'manual'),
+  ('index', 'bcbio_nextgen.tex', 'bcbio\\_nextgen Documentation',
+   'Brad Chapman', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -214,8 +214,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'bcbio_nextgen', u'bcbio_nextgen Documentation',
-     [u'Brad Chapman'], 1)
+    ('index', 'bcbio_nextgen', 'bcbio_nextgen Documentation',
+     ['Brad Chapman'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -228,8 +228,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'bcbio_nextgen', u'bcbio_nextgen Documentation',
-   u'Brad Chapman', 'bcbio_nextgen', 'One line description of project.',
+  ('index', 'bcbio_nextgen', 'bcbio_nextgen Documentation',
+   'Brad Chapman', 'bcbio_nextgen', 'One line description of project.',
    'Miscellaneous'),
 ]
 

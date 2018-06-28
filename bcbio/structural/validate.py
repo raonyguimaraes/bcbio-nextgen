@@ -61,7 +61,7 @@ def _comparison_stats_from_merge(in_file, stats, svcaller, data):
         for call in (l.rstrip().split("\t") for l in in_handle if not l.startswith("#")):
             supp_vec_str = [x for x in call[7].split(";") if x.startswith("SUPP_VEC=")][0]
             _, supp_vec = supp_vec_str.split("=")
-            calls = dict(zip(samples, [int(x) for x in supp_vec]))
+            calls = dict(list(zip(samples, [int(x) for x in supp_vec])))
             if calls["truth"] and calls["eval"]:
                 metric = "tp"
             elif calls["truth"]:
@@ -94,7 +94,7 @@ def _survivor_merge(call_vcf, truth_vcf, stats, work_dir, data):
 
 def _to_csv(truth_stats, stats, sample, svcaller):
     out = []
-    for metric, vals in truth_stats.items():
+    for metric, vals in list(truth_stats.items()):
         for svtype in sorted(list(stats["svtypes"])):
             count = len([x for x in vals if x["svtype"] == svtype])
             out.append([sample, svcaller, svtype, metric, count])
@@ -266,7 +266,7 @@ def _evaluate_multi(calls, truth_svtypes, work_dir, data):
                     dfwriter = csv.writer(df_out_handle)
                     writer.writerow(["svtype", "size", "caller", "sensitivity", "precision"])
                     dfwriter.writerow(["svtype", "size", "caller", "metric", "value", "label"])
-                    for svtype, truth in truth_svtypes.items():
+                    for svtype, truth in list(truth_svtypes.items()):
                         for size in EVENT_SIZES:
                             str_size = "%s-%s" % size
                             for call in calls:
@@ -326,11 +326,11 @@ def _plot_evaluation_event(df_csv, svtype):
                 if i == 0:
                     ax.set_title(metric, size=12, y=1.2)
                 vals, labels = _get_plot_val_labels(df, size, metric, callers)
-                ax.barh(range(1,len(vals)+1), vals)
+                ax.barh(list(range(1,len(vals)+1)), vals)
                 if j == 0:
                     ax.tick_params(axis='y', which='major', labelsize=8)
                     ax.locator_params(axis="y", tight=True)
-                    ax.set_yticks(range(1,len(callers)+1,1))
+                    ax.set_yticks(list(range(1,len(callers)+1,1)))
                     ax.set_yticklabels(callers, va="center")
                     ax.text(100, len(callers)+1, size_label, fontsize=10)
                 else:
@@ -380,7 +380,7 @@ def evaluate(data):
             summary_plots = _plot_evaluation(df_csv)
             data["sv-validate"] = {"csv": val_summary, "plot": summary_plots, "df": df_csv}
         else:
-            assert isinstance(truth_sets, basestring) and utils.file_exists(truth_sets), truth_sets
+            assert isinstance(truth_sets, str) and utils.file_exists(truth_sets), truth_sets
             val_summary = _evaluate_vcf(data["sv"], truth_sets, work_dir, data)
             title = "%s structural variants" % dd.get_sample_name(data)
             summary_plots = validateplot.classifyplot_from_valfile(val_summary, outtype="png", title=title)

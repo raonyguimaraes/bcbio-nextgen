@@ -163,22 +163,22 @@ def _get_input_files(samples, base_dir, tx_out_dir):
         sum_qc = tz.get_in(["summary", "qc"], data, {})
         if sum_qc in [None, "None"]:
             sum_qc = {}
-        elif isinstance(sum_qc, basestring):
+        elif isinstance(sum_qc, str):
             sum_qc = {dd.get_algorithm_qc(data)[0]: sum_qc}
         elif not isinstance(sum_qc, dict):
             raise ValueError("Unexpected summary qc: %s" % sum_qc)
-        for program, pfiles in sum_qc.items():
+        for program, pfiles in list(sum_qc.items()):
             if isinstance(pfiles, dict):
                 pfiles = [pfiles["base"]] + pfiles.get("secondary", [])
             # CWL: presents output files as single file plus associated secondary files
-            elif isinstance(pfiles, basestring):
+            elif isinstance(pfiles, str):
                 if os.path.exists(pfiles):
                     pfiles = [os.path.join(os.path.dirname(pfiles), x) for x in os.listdir(os.path.dirname(pfiles))]
                 else:
                     pfiles = []
             in_files[(dd.get_sample_name(data), program)].extend(pfiles)
     staged_files = []
-    for (sample, program), files in in_files.items():
+    for (sample, program), files in list(in_files.items()):
         cur_dir = utils.safe_makedir(os.path.join(tx_out_dir, sample, program))
         for f in files:
             if _check_multiqc_input(f) and _is_good_file_for_multiqc(f):
@@ -210,7 +210,7 @@ def _group_by_sample_and_batch(samples):
     out = collections.defaultdict(list)
     for data in samples:
         out[(dd.get_sample_name(data), dd.get_align_bam(data), tuple(_get_batches(data)))].append(data)
-    return [xs[0] for xs in out.values()]
+    return [xs[0] for xs in list(out.values())]
 
 def _create_list_file(paths, out_file):
     with open(out_file, "w") as f:
@@ -340,15 +340,15 @@ def _merge_metrics(samples, out_dir):
     for s in samples:
         s = _add_disambiguate(s)
         m = tz.get_in(['summary', 'metrics'], s)
-        if isinstance(m, basestring):
+        if isinstance(m, str):
             m = json.loads(m)
         if m:
-            for me in m.keys():
+            for me in list(m.keys()):
                 if isinstance(m[me], list) or isinstance(m[me], dict) or isinstance(m[me], tuple):
                     m.pop(me, None)
             sample_metrics[dd.get_sample_name(s)].update(m)
     out = []
-    for sample_name, m in sample_metrics.items():
+    for sample_name, m in list(sample_metrics.items()):
         sample_file = os.path.join(out_dir, "%s_bcbio.txt" % sample_name)
         with file_transaction(samples[0], sample_file) as tx_out_file:
             dt = pd.DataFrame(m, index=['1'])

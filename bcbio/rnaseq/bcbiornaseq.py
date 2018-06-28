@@ -64,7 +64,7 @@ def _quotestring(string):
 
 def _list2Rlist(xs):
     """ convert a python list to an R list """
-    if isinstance(xs, basestring):
+    if isinstance(xs, str):
         xs = [xs]
     rlist = ",".join([_quotestring(x) for x in xs])
     return "c(" + rlist + ")"

@@ -99,7 +99,7 @@ class ConfigCreator(object):
         join_fn = functools.partial(os.path.join, data_dir)
         return {
             'work_bam': join_fn(self._INPUT_FILENAMES['work_bam']),
-            'files': map(join_fn, self._INPUT_FILENAMES['fq_files'])
+            'files': list(map(join_fn, self._INPUT_FILENAMES['fq_files']))
         }
 
 
@@ -136,5 +136,5 @@ def _load_result_file(fname):
     ]
     sort_by = ['EnsemblGene1', 'EnsemblGene2']
     df = pd.read_csv(fname, sep='\t')[columns_to_keep].sort_values(by=sort_by)
-    df.index = range(len(df))
+    df.index = list(range(len(df)))
     return df

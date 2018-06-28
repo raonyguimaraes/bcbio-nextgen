@@ -61,7 +61,7 @@ def _get_samples_to_process(fn, out_dir, config, force_single, separators):
                     samples[cols[1]].append(cols)
                 else:
                     logger.info("skipping %s, File doesn't exist." % cols[0])
-    for sample, items in samples.items():
+    for sample, items in list(samples.items()):
         if is_fastq(items[0][0], True):
             fn = "fq_merge"
             ext = ".fastq.gz"

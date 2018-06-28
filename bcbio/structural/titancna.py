@@ -51,8 +51,8 @@ def _finalize_sv(solution_file, data):
     """
     out = {"variantcaller": "titancna"}
     with open(solution_file) as in_handle:
-        solution = dict(zip(in_handle.readline().strip("\r\n").split("\t"),
-                            in_handle.readline().strip("\r\n").split("\t")))
+        solution = dict(list(zip(in_handle.readline().strip("\r\n").split("\t"),
+                            in_handle.readline().strip("\r\n").split("\t"))))
     out["purity"] = solution["purity"]
     out["ploidy"] = solution["ploidy"]
     out["cellular_prevalence"] = [x.strip() for x in solution["cellPrev"].split(",")]
@@ -175,7 +175,7 @@ def _segs_to_vcf(in_file, data):
                                      + "\n")
                     header = in_handle.readline().strip().split("\t")
                     for line in in_handle:
-                        cur = dict(zip(header, line.strip().split("\t")))
+                        cur = dict(list(zip(header, line.strip().split("\t"))))
                         svtype = _get_svtype(cur["TITAN_call"])
                         info = ["SVTYPE=%s" % svtype, "END=%s" % cur["End_Position.bp."],
                                 "CN=%s" % cur["Copy_Number"], "MajorCN=%s" % cur["MajorCN"],

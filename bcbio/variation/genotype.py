@@ -62,7 +62,7 @@ def combine_multiple_callers(samples):
             by_bam[key] = []
         by_bam[key].append((variantcaller, jointcaller, data))
     out = []
-    for callgroup in by_bam.values():
+    for callgroup in list(by_bam.values()):
         ready_calls = []
         for variantcaller, jointcaller, data in callgroup:
             if variantcaller:
@@ -161,7 +161,7 @@ def _collapse_by_bam_variantcaller(samples):
         except KeyError:
             by_bam[key] = [data]
     out = []
-    for grouped_data in by_bam.values():
+    for grouped_data in list(by_bam.values()):
         cur = grouped_data[0]
         cur.pop("region", None)
         region_bams = cur.pop("region_bams", None)
@@ -221,7 +221,7 @@ def vc_output_record(samples):
             shared[tuple(key)] = None
     out = []
     for d in raw:
-        for key, val in shared.items():
+        for key, val in list(shared.items()):
             d = tz.update_in(d, key, lambda x: val)
         out.append([d])
     return out
@@ -250,7 +250,7 @@ def batch_for_variantcall(samples):
         for b in batches:
             batch_groups[(b, vc)].append(utils.deepish_copy(data))
     batches = []
-    for cur_group in batch_groups.values():
+    for cur_group in list(batch_groups.values()):
         joint_calling = any([is_joint(d) for d in cur_group])
         if joint_calling:
             for d in cur_group:
@@ -284,7 +284,7 @@ def handle_multiple_callers(data, key, default=None, require_bam=True):
     """Split samples that potentially require multiple variant calling approaches.
     """
     callers = get_variantcaller(data, key, default, require_bam=require_bam)
-    if isinstance(callers, basestring):
+    if isinstance(callers, str):
         return [data]
     elif not callers:
         return []
@@ -299,7 +299,7 @@ def handle_multiple_callers(data, key, default=None, require_bam=True):
             # if splitting by variant caller, also split by jointcaller
             if key == "variantcaller":
                 jcallers = get_variantcaller(data, "jointcaller", [])
-                if isinstance(jcallers, basestring):
+                if isinstance(jcallers, str):
                     jcallers = [jcallers]
                 if jcallers:
                     base["config"]["algorithm"]["orig_jointcaller"] = jcallers
@@ -403,7 +403,7 @@ def _get_batch_name(items, skip_jointcheck=False):
             batches = [batches]
         for b in batches:
             batch_names[b] += 1
-    return sorted(batch_names.items(), key=lambda x: x[-1], reverse=True)[0][0]
+    return sorted(list(batch_names.items()), key=lambda x: x[-1], reverse=True)[0][0]
 
 def _get_batch_variantcaller(items):
     variantcaller = [vc for vc in list(set([get_variantcaller(x) for x in items])) if vc]

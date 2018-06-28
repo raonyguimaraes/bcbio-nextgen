@@ -3,7 +3,7 @@
 Handles wrapping and integrating with multiple tools making it easier
 to run bcbio in a standard way in many environments.
 """
-from __future__ import print_function
+
 import glob
 import json
 import os
@@ -172,7 +172,7 @@ def _cromwell_debug(metadata):
         if isinstance(cur, dict) and "failures" in cur and "callRoot" in cur:
             out.append((key, cur))
         elif isinstance(cur, dict):
-            for k, v in cur.items():
+            for k, v in list(cur.items()):
                 out.extend(get_failed_calls(v, key + [k]))
         elif isinstance(cur, (list, tuple)):
             for i, v in enumerate(cur):
@@ -192,7 +192,7 @@ def _cromwell_debug(metadata):
 def _cromwell_move_outputs(metadata, final_dir):
     """Move Cromwell outputs to the final upload directory.
     """
-    sample_key = [k for k in metadata["outputs"].keys() if k.endswith(("rgnames__sample", "rgnames__sample_out"))][0]
+    sample_key = [k for k in list(metadata["outputs"].keys()) if k.endswith(("rgnames__sample", "rgnames__sample_out"))][0]
     project_dir = utils.safe_makedir(os.path.join(final_dir, "project"))
     samples = metadata["outputs"][sample_key]
     def _copy_with_secondary(f, dirname):
@@ -207,7 +207,7 @@ def _cromwell_move_outputs(metadata, final_dir):
             [_write_to_dir(v, dirname) for v in val]
         else:
             _copy_with_secondary(val, dirname)
-    for k, vals in metadata["outputs"].items():
+    for k, vals in list(metadata["outputs"].items()):
         if k != sample_key:
             if k.endswith(("summary__multiqc")):
                 vs = [v for v in vals if v]

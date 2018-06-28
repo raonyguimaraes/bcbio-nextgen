@@ -7,7 +7,7 @@ for human variant calling.
 
 Requires: git, wget, bgzip2, Python 3.x, Python 2.7 or argparse + Python 2.6 and earlier
 """
-from __future__ import print_function
+
 import collections
 import contextlib
 import datetime

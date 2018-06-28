@@ -55,9 +55,9 @@ def get_phenotype(sample):
     if "phenotype" in sample:
         return sample["phenotype"]
     sample_type = sample["sample_type"]
-    if sample_type in PRIORITIZED_TUMOR_CODES.keys():
+    if sample_type in list(PRIORITIZED_TUMOR_CODES.keys()):
         return "tumor"
-    elif sample_type in PRIORITIZED_NORMAL_CODES.keys():
+    elif sample_type in list(PRIORITIZED_NORMAL_CODES.keys()):
         return "normal"
     else:
         return "unknown"
@@ -78,8 +78,8 @@ def sample_to_bcbio(sample):
     return required + "," + ",".join([sample[x] for x in VALID_TCGA_FIELDS])
 
 def prioritize_normals(metadata):
-    normals = sorted(filter(lambda x: x["sample_type"] in
-                            PRIORITIZED_NORMAL_CODES.keys(), metadata),
+    normals = sorted([x for x in metadata if x["sample_type"] in
+                            list(PRIORITIZED_NORMAL_CODES.keys())],
                      key=lambda x: PRIORITIZED_NORMAL_CODES[x["sample_type"]])
     if len(normals) == 0:
         return [], []
@@ -90,7 +90,7 @@ def rebatch_metadata_by_experiment(metadata):
     normal, normal_rest = prioritize_normals(metadata)
     batch = metadata[0]["participant"]
     tumor_batch = [tz.assoc(x, "batch", batch) for x in metadata
-                   if x["sample_type"] in PRIORITIZED_TUMOR_CODES.keys()]
+                   if x["sample_type"] in list(PRIORITIZED_TUMOR_CODES.keys())]
     normal = [tz.assoc(normal, "batch", batch)] if normal else []
     # run each non priority normal as its own tumor sample with no control
     normal_rest = [tz.assoc(x, "batch", batch + "-" + x["sample_type"]) for x
@@ -102,12 +102,12 @@ def rebatch_metadata_by_experiment(metadata):
 def batch_tcga_metadata_by_participant(fns):
     metadata = [re.match(TCGA_RE, fn).groupdict() for fn in fns]
     metadata = [tz.assoc(d, "fn", fn) for d, fn in zip(metadata, fns)]
-    participant = tz.groupby(lambda x: x["participant"], metadata).values()
+    participant = list(tz.groupby(lambda x: x["participant"], metadata).values())
     return participant
 
 def keep_latest_sample(batch):
-    groups = tz.groupby(lambda x: (x["participant"], x["sample_type"]),
-                        batch).values()
+    groups = list(tz.groupby(lambda x: (x["participant"], x["sample_type"]),
+                        batch).values())
     keep = [sorted(group, key=lambda x: int(x["version"]), reverse=True)
             for group in groups]
     return [x[0] for x in keep]

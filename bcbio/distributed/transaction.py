@@ -61,7 +61,7 @@ def file_transaction(*data_and_files):
     """
     with _flatten_plus_safe(data_and_files) as (safe_names, orig_names):
         # remove any half-finished transactions
-        map(utils.remove_safe, safe_names)
+        list(map(utils.remove_safe, safe_names))
         # no need for try except block here,
         # because exceptions and tmp dir removal
         # are handled by tx_tmpdir contextmanager
@@ -91,7 +91,7 @@ def _move_tmp_files(safe, orig):
 
     _move_file_with_sizecheck(safe, orig)
     # Move additional, associated files in the same manner
-    for check_ext, check_idx in exts.items():
+    for check_ext, check_idx in list(exts.items()):
         if not safe.endswith(check_ext):
             continue
         safe_idx = safe + check_idx

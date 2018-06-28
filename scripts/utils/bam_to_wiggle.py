@@ -87,7 +87,7 @@ def write_bam_track(bam_file, regions, config, out_handle, normalize):
     is_valid = False
     with indexed_bam(bam_file, config) as work_bam:
         total = sum(1 for r in work_bam.fetch() if not r.is_unmapped) if normalize else None
-        sizes = zip(work_bam.references, work_bam.lengths)
+        sizes = list(zip(work_bam.references, work_bam.lengths))
         if len(regions) == 1 and regions[0][0] == "all":
             regions = [(name, 0, length) for name, length in sizes]
         for chrom, start, end in regions:
@@ -131,8 +131,8 @@ if __name__ == "__main__":
                       action="store_true", default=False)
     (options, args) = parser.parse_args()
     if len(args) not in [1, 2]:
-        print "Incorrect arguments"
-        print __doc__
+        print("Incorrect arguments")
+        print(__doc__)
         sys.exit()
     kwargs = dict(
         outfile=options.outfile,

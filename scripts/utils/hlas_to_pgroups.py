@@ -24,11 +24,11 @@ def main(fasta_fai, pgroup_file):
                 break
         if not found:
             groups[""].append(orig_hla)
-            print("Did not find group for %s" % orig_hla)
+            print(("Did not find group for %s" % orig_hla))
     final = {}
     for group in sorted(groups.keys()):
         for hla in groups[group]:
-            print group, hla
+            print(group, hla)
             final[hla] = group
     pprint.pprint(final)
 

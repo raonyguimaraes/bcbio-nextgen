@@ -4,7 +4,7 @@ Provides an automated way to generate a full set of analysis files from an inpu
 YAML template. Default templates are provided for common approaches which can be tweaked
 as needed.
 """
-from __future__ import print_function
+
 import collections
 import contextlib
 import copy
@@ -114,7 +114,7 @@ def _expand_dirs(in_files, known_exts):
         return os.path.isdir(os.path.expanduser(in_file))
     files, dirs = utils.partition(_is_dir, in_files)
     for dir in dirs:
-        for ext in known_exts.keys():
+        for ext in list(known_exts.keys()):
             wildcard = os.path.join(os.path.expanduser(dir), "*" + ext)
             files = itertools.chain(glob.glob(wildcard), files)
     return list(files)
@@ -186,7 +186,7 @@ def _write_config_file(items, global_vars, template, project_name, out_dir,
             out["upload"]["region"] = r_base.region
     if global_vars:
         out["globals"] = global_vars
-    for k, v in template.items():
+    for k, v in list(template.items()):
         if k not in ["details"]:
             out[k] = v
     if os.path.exists(out_config_file):
@@ -205,9 +205,9 @@ def _set_global_vars(metadata):
     """Identify files used multiple times in metadata and replace with global variables
     """
     fnames = collections.defaultdict(list)
-    for sample in metadata.keys():
-        for k, v in metadata[sample].items():
-            if isinstance(v, basestring) and os.path.isfile(v):
+    for sample in list(metadata.keys()):
+        for k, v in list(metadata[sample].items()):
+            if isinstance(v, str) and os.path.isfile(v):
                 v = _expand_file(v)
                 metadata[sample][k] = v
                 fnames[v].append(k)
@@ -236,7 +236,7 @@ def _parse_metadata(in_handle):
     metadata = {}
     reader = csv.reader(in_handle)
     while 1:
-        header = reader.next()
+        header = next(reader)
         if not header[0].startswith("#"):
             break
     keys = [x.strip() for x in header[1:]]
@@ -253,7 +253,7 @@ def _parse_metadata(in_handle):
                              "https://bcbio-nextgen.readthedocs.org/en/latest/"
                              "contents/configuration.html#automated-sample-configuration\n"
                              "Duplicate line is %s" % (sample, sinfo))
-        metadata[sample] = dict(zip(keys, sinfo[1:]))
+        metadata[sample] = dict(list(zip(keys, sinfo[1:])))
     metadata, global_vars = _set_global_vars(metadata)
     return metadata, global_vars
 
@@ -323,7 +323,7 @@ def _add_ped_metadata(name, metadata):
             x = int(x)
         except ValueError:
             x = -1
-        for k, v in valmap.items():
+        for k, v in list(valmap.items()):
             if k == x:
                 return v
         return None
@@ -375,7 +375,7 @@ def _add_metadata(item, metadata, remotes, only_metadata=False):
     if item_md and len(item_md) > 0:
         if "metadata" not in item:
             item["metadata"] = {}
-        for k, v in item_md.items():
+        for k, v in list(item_md.items()):
             if v:
                 if k in TOP_LEVEL:
                     item[k] = v
@@ -418,8 +418,8 @@ def _convert_to_relpaths(data, work_dir):
     work_dir = os.path.abspath(work_dir)
     data["files"] = [os.path.relpath(f, work_dir) for f in data["files"]]
     for topk in ["metadata", "algorithm"]:
-        for k, v in data[topk].items():
-            if isinstance(v, basestring) and os.path.isfile(v) and os.path.isabs(v):
+        for k, v in list(data[topk].items()):
+            if isinstance(v, str) and os.path.isfile(v) and os.path.isabs(v):
                 data[topk][k] = os.path.relpath(v, work_dir)
     return data
 
@@ -452,7 +452,7 @@ def _copy_to_configdir(items, out_dir):
 
 def _find_remote_inputs(metadata):
     out = []
-    for fr_key in metadata.keys():
+    for fr_key in list(metadata.keys()):
         if isinstance(fr_key, (list, tuple)):
             frs = fr_key
         else:
@@ -473,7 +473,7 @@ def setup(args):
     remote_config = None
     if hasattr(args, "systemconfig") and args.systemconfig and hasattr(args, "integrations"):
         config, _ = config_utils.load_system_config(args.systemconfig)
-        for iname, retriever in args.integrations.items():
+        for iname, retriever in list(args.integrations.items()):
             if iname in config:
                 remote_retriever = retriever
                 remote_config = remote_retriever.set_cache(config[iname])

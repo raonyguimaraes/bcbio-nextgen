@@ -20,4 +20,4 @@ def total_sequence_length(fasta):
     """
     return the total length of all sequences in a FASTA file
     """
-    return sum([x for x in sequence_length(fasta).values()])
+    return sum([x for x in list(sequence_length(fasta).values())])

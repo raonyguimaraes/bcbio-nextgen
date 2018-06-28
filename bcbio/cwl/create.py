@@ -19,6 +19,7 @@ from bcbio.cwl import defs, workflow
 from bcbio.distributed import objectstore, resources
 from bcbio.distributed.transaction import file_transaction
 from bcbio.pipeline import alignment
+from functools import reduce
 
 INTEGRATION_MAP = {"keep:": "arvados", "s3:": "s3", "sbg:": "sbgenomics",
                    "dx:": "dnanexus"}
@@ -72,7 +73,7 @@ def _get_disk_estimates(name, parallel, inputs, file_estimates, samples, disk,
     tmp_disk, out_disk, in_disk = 0, 0, 0
     if file_estimates:
         if disk:
-            for key, multiplier in disk.items():
+            for key, multiplier in list(disk.items()):
                 if key in file_estimates:
                     out_disk += int(multiplier * file_estimates[key])
         for inp in inputs:
@@ -117,7 +118,7 @@ def _add_current_quay_tag(repo, container_tags):
         tags = requests.request("GET", "https://quay.io/api/v1/repository/" + repo_id).json()["tags"]
         latest_tag = None
         latest_modified = None
-        for tag, info in tags.items():
+        for tag, info in list(tags.items()):
             if latest_tag:
                 if (dateutil.parser.parse(info['last_modified']) > dateutil.parser.parse(latest_modified)
                       and tag != 'latest'):
@@ -277,7 +278,7 @@ def _clean_record(rec):
                     return d
                 else:
                     out = {}
-                    for k, v in d.items():
+                    for k, v in list(d.items()):
                         out[k] = _clean_fields(v)
                     return out
             else:
@@ -293,7 +294,7 @@ def _get_record_fields(d):
         if "fields" in d:
             return d["fields"]
         else:
-            for v in d.values():
+            for v in list(d.values()):
                 fields = _get_record_fields(v)
                 if fields:
                     return fields
@@ -397,9 +398,9 @@ def _get_cur_remotes(path):
         for v in path:
             cur_remotes |= _get_cur_remotes(v)
     elif isinstance(path, dict):
-        for v in path.values():
+        for v in list(path.values()):
             cur_remotes |= _get_cur_remotes(v)
-    elif path and isinstance(path, basestring):
+    elif path and isinstance(path, str):
         if path.startswith(tuple(INTEGRATION_MAP.keys())):
             cur_remotes.add(INTEGRATION_MAP.get(path.split(":")[0] + ":"))
     return cur_remotes
@@ -466,7 +467,7 @@ def prep_cwl(samples, workflow_fn, out_dir, out_file, integrations=None,
         out["inputs"] = [x for x in out["inputs"] if x["id"] in used_inputs]
         yaml.safe_dump(out, out_handle, default_flow_style=False, allow_unicode=False)
     sample_json = "%s-samples.json" % utils.splitext_plus(out_file)[0]
-    out_clean = _clean_final_outputs(copy.deepcopy({k: v for k, v in keyvals.items() if k in used_inputs}),
+    out_clean = _clean_final_outputs(copy.deepcopy({k: v for k, v in list(keyvals.items()) if k in used_inputs}),
                                      get_retriever)
     with open(sample_json, "w") as out_handle:
         json.dump(out_clean, out_handle, sort_keys=True, indent=4, separators=(',', ': '))
@@ -487,7 +488,7 @@ def _flatten_samples(samples, base_file, get_retriever):
                 cur_flat[flat_key] = flat_val
         flat_data.append(cur_flat)
     out = {}
-    for key in sorted(list(set(reduce(operator.add, [d.keys() for d in flat_data])))):
+    for key in sorted(list(set(reduce(operator.add, [list(d.keys()) for d in flat_data])))):
         # Periods in keys cause issues with WDL and some CWL implementations
         clean_key = key.replace(".", "_")
         out[clean_key] = []
@@ -505,10 +506,10 @@ def _indexes_to_secondary_files(gresources, genome_build):
     This ensures that all indices are staged together in a single directory.
     """
     out = {}
-    for refname, val in gresources.items():
+    for refname, val in list(gresources.items()):
         if isinstance(val, dict) and "indexes" in val:
             # list of indexes -- aligners
-            if len(val.keys()) == 1:
+            if len(list(val.keys())) == 1:
                 indexes = val["indexes"]
                 if len(indexes) == 0:
                     if refname not in alignment.allow_noindices():
@@ -549,7 +550,7 @@ def _get_secondary_files(val):
         for x in val:
             for s in _get_secondary_files(x):
                 s_counts[s] += 1
-        for s, count in s_counts.items():
+        for s, count in list(s_counts.items()):
             if s and s not in out and count == len(val):
                 out.append(s)
     elif isinstance(val, dict) and (val.get("class") == "File" or "File" in val.get("class")):
@@ -618,7 +619,7 @@ def _get_avro_type(val):
     elif val is None:
         return ["null", "string"]
     # encode booleans as string True/False and unencode on other side
-    elif isinstance(val, bool) or isinstance(val, basestring) and val.lower() in ["true", "false", "none"]:
+    elif isinstance(val, bool) or isinstance(val, str) and val.lower() in ["true", "false", "none"]:
         return ["string", "null", "boolean"]
     elif isinstance(val, int):
         return "long"
@@ -650,7 +651,7 @@ def _samplejson_to_inputs(svals):
     """Convert sample output into inputs for CWL configuration files, with types.
     """
     out = []
-    for key, val in svals.items():
+    for key, val in list(svals.items()):
         out.append(_add_suppl_info({"id": "%s" % key}, val))
     return out
 
@@ -671,7 +672,7 @@ def _to_cwldata(key, val, get_retriever):
             out.append((key, _item_to_cwldata(json.dumps(val), get_retriever)))
         else:
             remain_val = {}
-            for nkey, nval in val.items():
+            for nkey, nval in list(val.items()):
                 cur_nkey = "%s__%s" % (key, nkey)
                 cwl_nval = _item_to_cwldata(nval, get_retriever)
                 if isinstance(cwl_nval, dict):
@@ -716,7 +717,7 @@ def _item_to_cwldata(x, get_retriever):
     """
     if isinstance(x, (list, tuple)):
         return [_item_to_cwldata(subx, get_retriever) for subx in x]
-    elif (x and isinstance(x, basestring) and
+    elif (x and isinstance(x, str) and
           (((os.path.isfile(x) or os.path.isdir(x)) and os.path.exists(x)) or
            objectstore.is_remote(x))):
         if _file_local_or_remote(x, get_retriever):
@@ -766,7 +767,7 @@ def directory_tarball(dirname):
         raise ValueError("Did not find relative directory to create tarball for %s" % dirname)
     tarball = os.path.join(base_dir, "%s-wf.tar.gz" % (tarball_dir.replace(os.path.sep, "--")))
     if not utils.file_exists(tarball):
-        print("Preparing CWL input tarball: %s" % tarball)
+        print(("Preparing CWL input tarball: %s" % tarball))
         with file_transaction({}, tarball) as tx_tarball:
             with utils.chdir(base_dir):
                 with tarfile.open(tx_tarball, "w:gz") as tar:
@@ -795,7 +796,7 @@ def _adjust_items(xs, adjust_fn):
         return [_adjust_items(x, adjust_fn) for x in xs]
     elif isinstance(xs, dict):
         out = {}
-        for k, v in xs.items():
+        for k, v in list(xs.items()):
             out[k] = _adjust_items(v, adjust_fn)
         return out
     else:
@@ -808,13 +809,13 @@ def _adjust_files(xs, adjust_fn):
         if "path" in xs:
             out = {}
             out["path"] = adjust_fn(xs["path"])
-            for k, vs in xs.items():
+            for k, vs in list(xs.items()):
                 if k != "path":
                     out[k] = _adjust_files(vs, adjust_fn)
             return out
         else:
             out = {}
-            for k, vs in xs.items():
+            for k, vs in list(xs.items()):
                 out[k] = _adjust_files(vs, adjust_fn)
             return out
     elif isinstance(xs, (list, tuple)):
@@ -828,7 +829,7 @@ def _calc_input_estimates(keyvals, get_retriever):
     These are current dominated by fastq/BAM sizes, so estimate based on that.
     """
     out = {}
-    for key, val in keyvals.items():
+    for key, val in list(keyvals.items()):
         size = _calc_file_size(val, 0, get_retriever)
         if size:
             out[key] = size

@@ -271,7 +271,7 @@ def combine_sample_regions(*samples):
     analysis_files = []
     batches = []
     with shared.bedtools_tmpdir(samples[0]):
-        for batch, items in vmulti.group_by_batch(samples, require_bam=False).items():
+        for batch, items in list(vmulti.group_by_batch(samples, require_bam=False).items()):
             batches.append(items)
             if global_analysis_file:
                 analysis_file, no_analysis_file = global_analysis_file, global_no_analysis_file

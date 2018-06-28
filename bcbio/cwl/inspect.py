@@ -58,11 +58,11 @@ class WorldWatcher:
 
     def _compare_dicts(self, orig, new, ns):
         out = {}
-        for key, val in new.items():
+        for key, val in list(new.items()):
             nskey = ns + [key]
             orig_val = tz.get_in([key], orig)
             if isinstance(val, dict) and isinstance(orig_val, dict):
-                for nkey, nval in self._compare_dicts(orig_val or {}, val or {}, nskey).items():
+                for nkey, nval in list(self._compare_dicts(orig_val or {}, val or {}, nskey).items()):
                     out = self._merge(out, {nkey: nval})
             elif val != orig_val:
                 out = tz.update_in(out, nskey, lambda x: copy.deepcopy(val))

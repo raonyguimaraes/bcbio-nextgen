@@ -38,7 +38,7 @@ def _needs_java(data):
     vc = dd.get_variantcaller(data)
     if isinstance(vc, dict):
         out = {}
-        for k, v in vc.items():
+        for k, v in list(vc.items()):
             if not isinstance(v, (list, tuple)):
                 v = [v]
             out[k] = v

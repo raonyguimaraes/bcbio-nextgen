@@ -40,7 +40,7 @@ def get_loc_files(galaxy_base):
     get dictionary of loc_type: loc_file, .loc files in the galaxy base
     for example: {"bwa": "/galaxy_base_path/tool-dir/bwa_index.loc"}
     """
-    return {k: os.path.join(galaxy_base, "tool-data", v) for k, v in REF_FILES.items()}
+    return {k: os.path.join(galaxy_base, "tool-data", v) for k, v in list(REF_FILES.items())}
 
 def get_genome_refs(loc_file, loc_type):
     """

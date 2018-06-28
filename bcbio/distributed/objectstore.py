@@ -26,7 +26,7 @@ REGIONS_NEWPERMS = {"s3": ["eu-central-1"]}
 if six.PY3:
     BIGNUM = float("inf")
 else:
-    BIGNUM = sys.maxint
+    BIGNUM = sys.maxsize
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -128,9 +128,9 @@ class S3Handle(FileHandle):
         """
         return self._key.read(size)
 
-    def next(self):
+    def __next__(self):
         """Return the next item from the container."""
-        return self._iter.next()
+        return next(self._iter)
 
     def close(self):
         """Close the file handle."""
@@ -218,9 +218,9 @@ class BlobHandle(FileHandle):
             self._pointer += size
             return chunk
 
-    def next(self):
+    def __next__(self):
         """Return the next item from the container."""
-        return self._iter.next()
+        return next(self._iter)
 
     def close(self):
         """Close the file handle."""

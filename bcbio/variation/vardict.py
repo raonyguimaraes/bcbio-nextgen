@@ -27,7 +27,7 @@ from bcbio.provenance import do
 from bcbio.variation import annotation, bamprep, bedutils, vcfutils
 
 def _is_bed_file(target):
-    return target and isinstance(target, basestring) and os.path.isfile(target)
+    return target and isinstance(target, str) and os.path.isfile(target)
 
 def _vardict_options_from_config(items, config, out_file, target=None):
     var2vcf_opts = []

@@ -77,7 +77,7 @@ def _get_preseq_params(data, preseq_cmd, read_count):
             params[lng[1:]] = other_opts[i + 1]
             other_opts = other_opts[:i] + other_opts[i + 2:]
     params['options'] = ' '.join(other_opts)
-    for k, v in config_utils.get_resources("preseq", data["config"]).items():
+    for k, v in list(config_utils.get_resources("preseq", data["config"]).items()):
         if k != 'options':
             params[k] = v
 

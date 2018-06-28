@@ -307,7 +307,7 @@ generate the getter and setter functions but don't override any explicitly
 defined
 """
 _g = globals()
-for k, v in LOOKUPS.items():
+for k, v in list(LOOKUPS.items()):
     keys = v['keys']
     getter_fn = 'get_' + k
     if getter_fn not in _g:

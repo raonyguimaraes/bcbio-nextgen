@@ -3,7 +3,7 @@
 https://sourceforge.net/p/scalpel/code/ci/master/tree/
 """
 
-from __future__ import print_function
+
 import os
 import shutil
 
@@ -24,7 +24,7 @@ def _scalpel_bed_file_opts(items, config, out_file, region, tmp_path):
     variant_regions = bedutils.population_variant_regions(items)
     target = shared.subset_variant_regions(variant_regions, region, out_file, items)
     if target:
-        if isinstance(target, basestring) and os.path.isfile(target):
+        if isinstance(target, str) and os.path.isfile(target):
             target_bed = target
         else:
             target_bed = os.path.join(tmp_path, "tmp.bed")

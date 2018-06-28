@@ -269,8 +269,8 @@ def _check_sample(in_bam, rgnames):
                          "\nSetting `bam_clean: fixrg`\n"
                          "in the configuration can often fix this issue.")
     if warnings:
-        print("*** Potential problems in input BAM compared to reference:\n%s\n" %
-              "\n".join(warnings))
+        print(("*** Potential problems in input BAM compared to reference:\n%s\n" %
+              "\n".join(warnings)))
 
 def _check_bam_contigs(in_bam, ref_file, config):
     """Ensure a pre-aligned BAM file matches the expected reference genome.
@@ -284,7 +284,7 @@ def _check_bam_contigs(in_bam, ref_file, config):
     extra_rcs = [x for x in ref_contigs if x not in bam_contigs]
     problems = []
     warnings = []
-    for bc, rc in itertools.izip_longest([x for x in bam_contigs if (x not in extra_bcs and
+    for bc, rc in itertools.zip_longest([x for x in bam_contigs if (x not in extra_bcs and
                                                                      x not in allowed_outoforder)],
                                          [x for x in ref_contigs if (x not in extra_rcs and
                                                                      x not in allowed_outoforder)]):
@@ -304,8 +304,8 @@ def _check_bam_contigs(in_bam, ref_file, config):
                          "Setting `bam_clean: remove_extracontigs` in the configuration can often fix this issue."
                          % "\n".join(problems))
     if warnings:
-        print("*** Potential problems in input BAM compared to reference:\n%s\n" %
-              "\n".join(warnings))
+        print(("*** Potential problems in input BAM compared to reference:\n%s\n" %
+              "\n".join(warnings)))
 
 def open_samfile(in_file):
     if is_bam(in_file):

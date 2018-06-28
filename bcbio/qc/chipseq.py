@@ -67,7 +67,7 @@ def _sample_template(sample, out_dir):
               "ChIPQCreport(sample);\n")
     r_code_fn = os.path.join(out_dir, "chipqc.r")
     with open(r_code_fn, 'w') as inh:
-        print >>inh, r_code.format(**locals())
+        print(r_code.format(**locals()), file=inh)
 
     return r_code_fn
 

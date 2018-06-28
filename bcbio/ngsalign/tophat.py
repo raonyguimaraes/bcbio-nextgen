@@ -127,7 +127,7 @@ def tophat_align(fastq_file, pair_file, ref_file, out_base, align_dir, data,
             options["no-coverage-search"] = True
             options["no-mixed"] = True
             cmd = [sys.executable, config_utils.get_program("tophat", config)]
-            for k, v in options.items():
+            for k, v in list(options.items()):
                 if v is True:
                     cmd.append("--%s" % k)
                 else:

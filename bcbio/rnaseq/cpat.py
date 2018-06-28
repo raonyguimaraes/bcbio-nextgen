@@ -27,7 +27,7 @@ def classify_with_cpat(assembled_gtf, ref_gtf, ref_fasta, data):
     coding_probabilities = load_cpat_coding_prob(cpat_fn)
     lengths = fasta.sequence_length(assembled_fasta)
     classification = {}
-    for transcript, prob in coding_probabilities.items():
+    for transcript, prob in list(coding_probabilities.items()):
         if prob > cutoff:
             classification[transcript] = "protein_coding"
         if lengths[transcript] > 200:
@@ -52,12 +52,12 @@ def cpat(assembled_fasta, hexamer, logit, data, out_file=None):
 
 def load_cpat_coding_prob(cpat_file):
     with open(cpat_file) as in_handle:
-        header = in_handle.next()
+        header = next(in_handle)
         return {line.split()[0]: float(line.split()[5]) for line in in_handle}
 
 def load_cpat_orf_size(cpat_file):
     with open(cpat_file) as in_handle:
-        header = in_handle.next()
+        header = next(in_handle)
         return {line.split()[0]: float(line.split()[2]) for line in in_handle}
 
 def grade_cpat(coding_transcripts, noncoding_transcripts, cpat, cutoff):

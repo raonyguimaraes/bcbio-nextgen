@@ -18,7 +18,7 @@ ToDo:
 - Batching of inputs/outputs to grouped Channel (or use set)
 - Scatter parallelization
 """
-from __future__ import print_function
+
 import collections
 import os
 import pprint
@@ -181,8 +181,8 @@ def _organize_step_scatter(step, inputs):
             if attr:
                 local_ref += ".%s" % attr
             inp_val[scatter_key] = local_ref
-            inputs = [{"id": iid, "value": ival} for iid, ival in inp_val.items()]
-    return inputs, [(v, k) for k, v in scatter_local.items()]
+            inputs = [{"id": iid, "value": ival} for iid, ival in list(inp_val.items())]
+    return inputs, [(v, k) for k, v in list(scatter_local.items())]
 
 def _get_wf_inout(wf):
     assert wf.inputs_record_schema["type"] == "record"

@@ -252,7 +252,7 @@ def write_versions(dirs, config=None, is_wrapper=False):
         assert utils.file_exists(out_file), "Failed to create program versions from VM"
     elif out_file is None:
         for p in _get_versions(config):
-            print("{program},{version}".format(**p))
+            print(("{program},{version}".format(**p)))
     else:
         with open(out_file, "w") as out_handle:
             for p in _get_versions(config):

@@ -22,7 +22,7 @@ Needed for WDL finalization to support bcbio:
 - Associate secondary files (like `bai`, `tbi`) with primary file ('bam`, 'vcf.gz`)
   https://github.com/broadinstitute/cromwell/issues/2269
 """
-from __future__ import print_function
+
 import collections
 import os
 import subprocess
@@ -160,8 +160,8 @@ def _organize_step_scatter(step, inputs, remapped):
             if attr:
                 local_ref += ".%s" % attr
             inp_val[scatter_key] = local_ref
-            inputs = [{"id": iid, "value": ival} for iid, ival in inp_val.items()]
-    return inputs, [(v, k) for k, v in scatter_local.items()]
+            inputs = [{"id": iid, "value": ival} for iid, ival in list(inp_val.items())]
+    return inputs, [(v, k) for k, v in list(scatter_local.items())]
 
 def _get_wf_inout(wf, records):
     assert wf.inputs_record_schema["type"] == "record"
@@ -221,7 +221,7 @@ def _variable_type_to_read_fn(vartype, records):
               "Object": "read_object", "Array[Object]": "read_objects",
               "Array[Array[Object]]": "read_objects",
               "Int": "read_int", "Float": "read_float"}
-    for rec_name in records.keys():
+    for rec_name in list(records.keys()):
         fn_map["%s" % rec_name] = "read_struct"
         fn_map["Array[%s]" % rec_name] = "read_struct"
         fn_map["Array[Array[%s]]" % rec_name] = "read_struct"
@@ -233,7 +233,7 @@ def _variable_type_to_read_fn(vartype, records):
     return fn_map[vartype]
 
 def _arg_to_dict(x, requirements):
-    if isinstance(x, basestring):
+    if isinstance(x, str):
         return {"prefix": "", "position": None, "value": x}
     elif isinstance(x, dict) and "valueFrom" in x and x["valueFrom"].startswith("sentinel_runtime"):
         for r in requirements:

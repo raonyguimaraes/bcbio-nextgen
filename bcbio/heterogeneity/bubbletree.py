@@ -3,7 +3,7 @@
 http://www.bioconductor.org/packages/release/bioc/html/BubbleTree.html
 http://www.bioconductor.org/packages/release/bioc/vignettes/BubbleTree/inst/doc/BubbleTree-vignette.html
 """
-from __future__ import print_function
+
 import collections
 import csv
 import os
@@ -33,7 +33,7 @@ def run(vrn_info, calls_by_name, somatic_info, do_plots=True, handle_failures=Tr
     elif "cnvkit" in calls_by_name:
         cnv_info = calls_by_name["cnvkit"]
     else:
-        raise ValueError("BubbleTree only currently support CNVkit and Seq2c: %s" % ", ".join(calls_by_name.keys()))
+        raise ValueError("BubbleTree only currently support CNVkit and Seq2c: %s" % ", ".join(list(calls_by_name.keys())))
     work_dir = _cur_workdir(somatic_info.tumor_data)
     class OutWriter:
         def __init__(self, out_handle):
@@ -108,9 +108,9 @@ def _prep_cnv_file(cns_file, svcaller, work_dir, data):
                     reader = csv.reader(in_handle, dialect="excel-tab")
                     writer = csv.writer(out_handle)
                     writer.writerow(["chrom", "start", "end", "num.mark", "seg.mean"])
-                    header = reader.next()
+                    header = next(reader)
                     for line in reader:
-                        cur = dict(zip(header, line))
+                        cur = dict(list(zip(header, line)))
                         if chromhacks.is_autosomal(cur["chromosome"]):
                             writer.writerow([_to_ucsc_style(cur["chromosome"]), cur["start"],
                                              cur["end"], cur["probes"], cur["log2"]])
@@ -155,7 +155,7 @@ def _identify_heterogeneity_blocks_seg(in_file, seg_file, params, work_dir, soma
     def _segment_by_cns(target_chrom, freqs, coords):
         with open(seg_file) as in_handle:
             reader = csv.reader(in_handle, dialect="excel-tab")
-            reader.next()  # header
+            next(reader)  # header
             for cur_chrom, start, end in (xs[:3] for xs in reader):
                 if cur_chrom == target_chrom:
                     block_freqs = []
@@ -269,7 +269,7 @@ def _passes_plus_germline(rec):
     """Check if a record passes filters (but might be germline -- labelled with REJECT).
     """
     allowed = set(["PASS", "REJECT"])
-    filters = [x for x in rec.filter.keys() if x in allowed]
+    filters = [x for x in list(rec.filter.keys()) if x in allowed]
     return len(filters) > 0
 
 def _is_biallelic_snp(rec):
@@ -287,7 +287,7 @@ def _tumor_normal_stats(rec, somatic_info):
     if len(rec.samples) == 0:
         samples = [(somatic_info.tumor_name, None)]
     else:
-        samples = rec.samples.items()
+        samples = list(rec.samples.items())
     for name, sample in samples:
         alt, depth, freq = sample_alt_and_depth(rec, sample)
         if depth is not None and freq is not None:
@@ -380,7 +380,7 @@ if __name__ == "__main__":
               "min_depth": 15}
     for rec in bcf_in:
         if _is_possible_loh(rec, bcf_in, params, somatic(sys.argv[2], sys.argv[3])):
-            print(rec.filter.keys(), len(rec.filter))
+            print(list(rec.filter.keys()), len(rec.filter))
 
 _script = """
 .libPaths(c("{local_sitelib}"))

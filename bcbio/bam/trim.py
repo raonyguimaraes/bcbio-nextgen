@@ -147,7 +147,7 @@ def _get_sequences_to_trim(config, builtin):
     polya = builtin_adapters.get("polya", [None])[0]
     # allow for trimming of custom sequences for advanced users
     custom_trim = config["algorithm"].get("custom_trim", [])
-    builtin_adapters = {k: v for k, v in builtin_adapters.items() if
+    builtin_adapters = {k: v for k, v in list(builtin_adapters.items()) if
                         k != "polya"}
     trim_sequences = custom_trim
     # for unstranded RNA-seq, libraries, both polyA and polyT can appear
@@ -156,7 +156,7 @@ def _get_sequences_to_trim(config, builtin):
         trim_sequences += [polya, str(Seq(polya).reverse_complement())]
 
     # also trim the reverse complement of the adapters
-    for _, v in builtin_adapters.items():
+    for _, v in list(builtin_adapters.items()):
         trim_sequences += [str(Seq(sequence)) for sequence in v]
         trim_sequences += [str(Seq(sequence).reverse_complement()) for
                            sequence in v]
@@ -225,7 +225,7 @@ def _cutadapt_trim_cmd(fastq_files, quality_format, adapters, out_files, data):
     # this behavior might not be what we want; we could also do two or
     # more passes of cutadapt
     cutadapt = os.path.join(os.path.dirname(sys.executable), "cutadapt")
-    adapter_cmd = " ".join(map(lambda x: "-a " + x, adapters))
+    adapter_cmd = " ".join(["-a " + x for x in adapters])
     ropts = " ".join(str(x) for x in
                      config_utils.get_resources("cutadapt", data["config"]).get("options", []))
     base_cmd = ("{cutadapt} {ropts} --times=2 --quality-base={quality_base} "

@@ -1,6 +1,6 @@
 """Support integration with Illumina sequencer machines.
 """
-from __future__ import print_function
+
 import glob
 import json
 import os
@@ -15,6 +15,7 @@ from bcbio import utils
 from bcbio.log import setup_local_logging
 from bcbio.illumina import demultiplex, samplesheet, transfer
 from bcbio.galaxy import nglims
+from functools import reduce
 
 # ## bcbio-nextgen integration
 

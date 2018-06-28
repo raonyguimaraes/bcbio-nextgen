@@ -120,7 +120,7 @@ def _group_batches_shared(xs, caller_batch_fn, prep_data_fn):
             data = prep_data_fn(data, [data])
             singles.append(data)
     batches = []
-    for batch, items in batch_groups.items():
+    for batch, items in list(batch_groups.items()):
         batch_data = utils.deepish_copy(_pick_lead_item(items))
         # For nested primary batches, split permanently by batch
         if tz.get_in(["metadata", "batch"], batch_data):
@@ -161,8 +161,7 @@ def group_batches_joint(samples):
         return jointcaller, batch
     def _prep_data(data, items):
         for r in ["callable_regions", "variant_regions"]:
-            data[r] = list(set(filter(lambda x: x is not None,
-                                      [tz.get_in(("config", "algorithm", r), d) for d in items])))
+            data[r] = list(set([x for x in [tz.get_in(("config", "algorithm", r), d) for d in items] if x is not None]))
         data["work_bams"] = [x.get("align_bam", x.get("work_bam")) for x in items]
         data["vrn_files"] = [x["vrn_file"] for x in items]
         return data
@@ -183,14 +182,14 @@ def _diff_dict(orig, new):
     """Diff a nested dictionary, returning only key/values that differ.
     """
     final = {}
-    for k, v in new.items():
+    for k, v in list(new.items()):
         if isinstance(v, dict):
             v = _diff_dict(orig.get(k, {}), v)
             if len(v) > 0:
                 final[k] = v
         elif v != orig.get(k):
             final[k] = v
-    for k, v in orig.items():
+    for k, v in list(orig.items()):
         if k not in new:
             final[k] = None
     return final
@@ -222,7 +221,7 @@ def get_orig_items(base):
 def _patch_dict(diff, base):
     """Patch a dictionary, substituting in changed items from the nested diff.
     """
-    for k, v in diff.items():
+    for k, v in list(diff.items()):
         if isinstance(v, dict):
             base[k] = _patch_dict(v, base.get(k, {}))
         elif not v:

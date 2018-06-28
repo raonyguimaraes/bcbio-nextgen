@@ -81,7 +81,7 @@ def _get_common_cores(resources):
     """Retrieve the most common configured number of cores in the input file.
     """
     all_cores = []
-    for vs in resources.values():
+    for vs in list(resources.values()):
         cores = vs.get("cores")
         if cores:
             all_cores.append(int(vs["cores"]))
@@ -131,7 +131,7 @@ def runner(view, parallel, dirs, config):
         if len(items) > 0:
             items = [config_utils.add_cores_to_config(x, parallel["cores_per_job"], parallel) for x in items]
             if "wrapper" in parallel:
-                wrap_parallel = {k: v for k, v in parallel.items() if k in set(["fresources"])}
+                wrap_parallel = {k: v for k, v in list(parallel.items()) if k in set(["fresources"])}
                 items = [[fn_name] + parallel.get("wrapper_args", []) + [wrap_parallel] + list(x) for x in items]
             items = zip_args([args for args in items])
             for data in view.map_sync(fn, items, track=False):

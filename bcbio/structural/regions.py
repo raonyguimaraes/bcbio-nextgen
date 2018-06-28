@@ -21,6 +21,7 @@ from bcbio.distributed.transaction import file_transaction
 from bcbio.pipeline import datadict as dd
 from bcbio.provenance import do
 from bcbio.variation import bedutils, multi
+from functools import reduce
 
 def calculate_sv_bins(*items):
     """Determine bin sizes and regions to use for samples.
@@ -126,7 +127,7 @@ def _group_by_cnv_method(batches):
     CnvGroup = collections.namedtuple("CnvGroup", "items, work_dir, access_file, region_file")
     out = []
     groups = collections.defaultdict(list)
-    for batch, items in batches.items():
+    for batch, items in list(batches.items()):
         for data in items:
             work_dir = utils.safe_makedir(os.path.join(dd.get_work_dir(data), "structural", "bins", batch))
             cnv_file = get_base_cnv_regions(data, work_dir, "transcripts100", include_gene_names=False)
@@ -135,7 +136,7 @@ def _group_by_cnv_method(batches):
         assert cnv_file, ("Did not find coverage regions for batch %s: %s" %
                           (batch, " ".join([dd.get_sample_name(d) for d in items])))
         groups[(cnv_file, dd.get_prep_method(data))].append((items, data, work_dir))
-    for (cnv_file, _), cur_group in groups.items():
+    for (cnv_file, _), cur_group in list(groups.items()):
         group_items = reduce(operator.add, [xs[0] for xs in cur_group])
         access_file = tz.get_in(["config", "algorithm", "callable_regions"], cur_group[0][1])
         out.append(CnvGroup(group_items, cur_group[0][2], access_file, cnv_file))
@@ -224,8 +225,7 @@ def normalize_sv_coverage(*items):
                 antitarget_bed = tz.get_in(["depth", "bins", "antitarget"], d)
         work_dir = utils.safe_makedir(os.path.join(dd.get_work_dir(inputs[0]), "structural",
                                                    dd.get_sample_name(inputs[0]), "bins"))
-        input_backs = set(filter(lambda x: x is not None,
-                                 [dd.get_background_cnv_reference(d) for d in inputs]))
+        input_backs = set([x for x in [dd.get_background_cnv_reference(d) for d in inputs] if x is not None])
         if input_backs:
             assert len(input_backs) == 1, "Multiple backgrounds in group: %s" % list(input_backs)
             back_file = list(input_backs)[0]

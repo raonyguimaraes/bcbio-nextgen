@@ -17,6 +17,7 @@ from bcbio.pipeline import config_utils
 from bcbio.utils import file_exists, save_diskspace
 from bcbio.distributed.transaction import file_transaction, tx_tmpdir
 from bcbio.provenance import do
+from functools import reduce
 
 # ## Split/Combine helpers
 
@@ -249,7 +250,7 @@ def remove_exclude_regions(f):
     @functools.wraps(f)
     def wrapper(variant_regions, region, out_file, items=None, do_merge=True, data=None):
         region_bed = f(variant_regions, region, out_file, items, do_merge, data)
-        if region_bed and isinstance(region_bed, basestring) and os.path.exists(region_bed) and items:
+        if region_bed and isinstance(region_bed, str) and os.path.exists(region_bed) and items:
             for e in get_exclude_regions(items):
                 if e in exclude_fns:
                     region_bed = exclude_fns[e](region_bed, items)

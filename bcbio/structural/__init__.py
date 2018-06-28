@@ -15,6 +15,7 @@ from bcbio.structural import (battenberg, cn_mops, cnvkit, delly, gridss,
                               seq2c, titancna, validate, wham)
 from bcbio.variation import validate as vcvalidate
 from bcbio.variation import vcfutils
+from functools import reduce
 
 # Stratify callers by stage -- see `run` documentation below for definitions
 _CALLERS = {
@@ -51,7 +52,7 @@ def get_svcallers(data):
     svs = data["config"]["algorithm"].get("svcaller")
     if svs is None:
         svs = []
-    elif isinstance(svs, basestring):
+    elif isinstance(svs, str):
         svs = [svs]
     return svs
 
@@ -90,7 +91,7 @@ def finalize_sv(samples, config):
             by_bam[x["align_bam"], tuple(batch)] = [x]
     by_batch = collections.OrderedDict()
     lead_batches = {}
-    for grouped_calls in by_bam.values():
+    for grouped_calls in list(by_bam.values()):
         def orig_svcaller_order(x):
             orig_callers = tz.get_in(["config", "algorithm", "svcaller_orig"], x)
             cur_caller = tz.get_in(["config", "algorithm", "svcaller"], x)
@@ -111,7 +112,7 @@ def finalize_sv(samples, config):
             except KeyError:
                 by_batch[batch] = [final]
     out = []
-    for batch, items in by_batch.items():
+    for batch, items in list(by_batch.items()):
         if any("svplots" in dd.get_tools_on(d) for d in items):
             items = plot.by_regions(items)
         for data in items:
@@ -131,7 +132,7 @@ def batch_for_sv(samples):
     callers for parallel processing.
     """
     to_process, extras, background = _batch_split_by_sv(samples, "standard")
-    out = [cwlutils.samples_to_records(xs) for xs in to_process.values()] + extras
+    out = [cwlutils.samples_to_records(xs) for xs in list(to_process.values())] + extras
     return out
 
 def _batch_split_by_sv(samples, stage):
@@ -146,7 +147,7 @@ def _batch_split_by_sv(samples, stage):
                 svcaller = tz.get_in(["config", "algorithm", "svcaller"], x)
                 batch = dd.get_batch(x) or dd.get_sample_name(x)
                 if stage in ["precall", "ensemble"]:  # no batching for precall or ensemble methods
-                    if isinstance(batch, basestring) and batch != dd.get_sample_name(x):
+                    if isinstance(batch, str) and batch != dd.get_sample_name(x):
                         batch += "_%s" % dd.get_sample_name(x)
                     else:
                         batch = dd.get_sample_name(x)
@@ -175,7 +176,7 @@ def run(samples, run_parallel, stage):
     """
     to_process, extras, background = _batch_split_by_sv(samples, stage)
     processed = run_parallel("detect_sv", ([xs, background, stage]
-                                           for xs in to_process.values()))
+                                           for xs in list(to_process.values())))
     finalized = (run_parallel("finalize_sv", [([xs[0] for xs in processed], processed[0][0]["config"])])
                  if len(processed) > 0 else [])
     return extras + finalized

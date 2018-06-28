@@ -102,7 +102,7 @@ def _make_ignore_file(work_dir, ref_file, ignore_file, impute_file):
 
 def _missing_files(out):
     missing_files = []
-    for key, fname in out.items():
+    for key, fname in list(out.items()):
         if not os.path.exists(fname):
             missing_files.append((key, fname))
     return missing_files

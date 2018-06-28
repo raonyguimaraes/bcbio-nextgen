@@ -26,6 +26,7 @@ from bcbio.pipeline import config_utils
 from bcbio.provenance import do
 from bcbio.variation import effects, ploidy, population, vcfutils
 from bcbio.structural import annotate, plot, shared
+from functools import reduce
 
 def use_general_sv_bins(data):
     """Check if we should use a general binning approach for a sample.
@@ -234,8 +235,8 @@ def _run_cnvkit_shared_orig(inputs, backgrounds):
                        "cns": "%s.cns" % out_base})
     if not utils.file_exists(ckouts[0]["cns"]):
         cov_interval = dd.get_coverage_interval(inputs[0])
-        samples_to_run = zip(["background"] * len(backgrounds), backgrounds) + \
-                        zip(["evaluate"] * len(inputs), inputs)
+        samples_to_run = list(zip(["background"] * len(backgrounds), backgrounds)) + \
+                        list(zip(["evaluate"] * len(inputs), inputs))
         # New style shared SV bins
         if tz.get_in(["depth", "bins", "target"], inputs[0]):
             target_bed = tz.get_in(["depth", "bins", "target"], inputs[0])
@@ -254,7 +255,7 @@ def _run_cnvkit_shared_orig(inputs, backgrounds):
             coverage_cnns = reduce(operator.add,
                                 [_cnvkit_metrics(cnns, target_bed, antitarget_bed, cov_interval,
                                                     inputs + backgrounds)
-                                    for cnns in tz.groupby("bam", raw_coverage_cnns).values()])
+                                    for cnns in list(tz.groupby("bam", raw_coverage_cnns).values())])
             background_cnn = cnvkit_background(_select_background_cnns(coverage_cnns),
                                                 background_cnn, inputs, target_bed, antitarget_bed)
         else:
@@ -264,8 +265,8 @@ def _run_cnvkit_shared_orig(inputs, backgrounds):
         parallel = {"type": "local", "cores": dd.get_cores(inputs[0]), "progs": ["cnvkit"]}
         fixed_cnrs = run_multicore(_cnvkit_fix,
                                    [(cnns, background_cnn, inputs, ckouts) for cnns in
-                                    tz.groupby("bam", [x for x in coverage_cnns
-                                                       if x["itype"] == "evaluate"]).values()],
+                                    list(tz.groupby("bam", [x for x in coverage_cnns
+                                                       if x["itype"] == "evaluate"]).values())],
                                    inputs[0]["config"], parallel)
         [_cnvkit_segment(cnr, cov_interval, data, inputs + backgrounds) for cnr, data in fixed_cnrs]
     return ckouts
@@ -345,8 +346,8 @@ def _cnvkit_metrics(cnns, target_bed, antitarget_bed, cov_interval, items):
 def _read_metrics_file(in_file):
     with open(in_file) as in_handle:
         header = in_handle.next().strip().split("\t")[1:]
-        vals = map(float, in_handle.next().strip().split("\t")[1:])
-    return dict(zip(header, vals))
+        vals = list(map(float, in_handle.next().strip().split("\t")[1:]))
+    return dict(list(zip(header, vals)))
 
 @utils.map_wrap
 @zeromq_aware_logging
@@ -628,12 +629,12 @@ def _get_larger_chroms(ref_file):
         # separate out smaller chromosomes and haplotypes with kmeans
         centroids, _ = kmeans(np.array(all_sizes), 2)
         idx, _ = vq(np.array(all_sizes), centroids)
-        little_sizes = tz.first(tz.partitionby(lambda xs: xs[0], zip(idx, all_sizes)))
+        little_sizes = tz.first(tz.partitionby(lambda xs: xs[0], list(zip(idx, all_sizes))))
         little_sizes = [x[1] for x in little_sizes]
         # create one more cluster with the smaller, removing the haplotypes
         centroids2, _ = kmeans(np.array(little_sizes), 2)
         idx2, _ = vq(np.array(little_sizes), centroids2)
-        little_sizes2 = tz.first(tz.partitionby(lambda xs: xs[0], zip(idx2, little_sizes)))
+        little_sizes2 = tz.first(tz.partitionby(lambda xs: xs[0], list(zip(idx2, little_sizes))))
         little_sizes2 = [x[1] for x in little_sizes2]
         # get any chromosomes not in haplotype/random bin
         thresh = max(little_sizes2)

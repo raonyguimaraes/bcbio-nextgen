@@ -8,7 +8,7 @@ Uses disambiguation scripts contributed by AstraZeneca, incorporated into
 bcbio-nextgen: https://github.com/mjafin/disambiguate
 """
 
-from __future__ import print_function
+
 import collections
 import copy
 import os
@@ -34,7 +34,7 @@ def split(*items):
                                         "base": True}
             out.append([data])
             # handle the instance where a single organism is disambiguated
-            if isinstance(dis_orgs, basestring):
+            if isinstance(dis_orgs, str):
                 dis_orgs = [dis_orgs]
             for dis_org in dis_orgs:
                 dis_data = copy.deepcopy(data)
@@ -60,7 +60,7 @@ def resolve(items, run_parallel):
             out.append([data])
     if len(to_process) > 0:
         dis1 = run_parallel("run_disambiguate",
-                            [(xs, xs[0]["config"]) for xs in to_process.itervalues()])
+                            [(xs, xs[0]["config"]) for xs in to_process.values()])
         disambigs_by_name = collections.defaultdict(list)
         print(len(dis1))
         for xs in dis1:
@@ -68,7 +68,7 @@ def resolve(items, run_parallel):
             data = xs[0]
             disambigs_by_name[dd.get_sample_name(data)].append(data)
         dis2 = run_parallel("disambiguate_merge_extras",
-                            [(xs, xs[0]["config"]) for xs in disambigs_by_name.itervalues()])
+                            [(xs, xs[0]["config"]) for xs in disambigs_by_name.values()])
     else:
         dis2 = []
     return out + dis2
@@ -77,7 +77,7 @@ def merge_extras(items, config):
     """Merge extra disambiguated reads into a final BAM file.
     """
     final = {}
-    for extra_name in items[0]["disambiguate"].keys():
+    for extra_name in list(items[0]["disambiguate"].keys()):
         in_files = []
         for data in items:
             in_files.append(data["disambiguate"][extra_name])

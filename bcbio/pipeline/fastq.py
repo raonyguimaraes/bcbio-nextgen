@@ -19,7 +19,7 @@ def get_fastq_files(data):
     ready_files = []
     should_gzip = True
     # Bowtie does not accept gzipped fastq
-    if 'bowtie' in data['reference'].keys():
+    if 'bowtie' in list(data['reference'].keys()):
         should_gzip = False
     for fname in data["files"]:
         if fname.endswith(".bam"):

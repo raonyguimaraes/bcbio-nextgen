@@ -80,7 +80,7 @@ def get_genome(data):
     if genome in loaded:
         return loaded[genome]
     else:
-        return sum([x for x in fasta.sequence_length(dd.get_ref_file(data)).values()])
+        return sum([x for x in list(fasta.sequence_length(dd.get_ref_file(data)).values())])
 
 def _bam_coverage(name, bam_input, data):
     """Run bamCoverage from deeptools"""

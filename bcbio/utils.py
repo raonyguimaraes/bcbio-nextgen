@@ -245,7 +245,7 @@ def file_uptodate(fname, cmp_fname):
 
 def create_dirs(config, names=None):
     if names is None:
-        names = config["dir"].keys()
+        names = list(config["dir"].keys())
     for dname in names:
         d = config["dir"][dname]
         safe_makedir(d)
@@ -429,7 +429,7 @@ def robust_partition_all(n, iterable):
         x = []
         for _ in range(n):
             try:
-                x.append(it.next())
+                x.append(next(it))
             except StopIteration:
                 yield x
                 # Omitting this StopIteration results in a segfault!
@@ -440,8 +440,8 @@ def partition(pred, iterable, tolist=False):
     'Use a predicate to partition entries into false entries and true entries'
     # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
     t1, t2 = itertools.tee(iterable)
-    ifalse = itertools.ifilterfalse(pred, t1)
-    itrue = itertools.ifilter(pred, t2)
+    ifalse = itertools.filterfalse(pred, t1)
+    itrue = filter(pred, t2)
     if tolist:
         return list(ifalse), list(itrue)
     else:
@@ -459,7 +459,7 @@ def merge_config_files(fnames):
     out = _load_yaml(fnames[0])
     for fname in fnames[1:]:
         cur = _load_yaml(fname)
-        for k, v in cur.items():
+        for k, v in list(cur.items()):
             if k in out and isinstance(out[k], dict):
                 out[k].update(v)
             else:
@@ -473,7 +473,7 @@ def deepish_copy(org):
     http://writeonly.wordpress.com/2009/05/07/deepcopy-is-a-pig-for-simple-data/
     """
     out = dict().fromkeys(org)
-    for k, v in org.items():
+    for k, v in list(org.items()):
         if isinstance(v, dict):
             out[k] = deepish_copy(v)
         else:
@@ -545,7 +545,7 @@ def is_pair(arg):
     return is_sequence(arg) and len(arg) == 2
 
 def is_string(arg):
-    return isinstance(arg, basestring)
+    return isinstance(arg, str)
 
 
 def locate(pattern, root=os.curdir):
@@ -605,7 +605,7 @@ def replace_directory(out_files, dest_dir):
 
     """
     if is_sequence(out_files):
-        filenames = map(os.path.basename, out_files)
+        filenames = list(map(os.path.basename, out_files))
         return [os.path.join(dest_dir, x) for x in filenames]
     elif is_string(out_files):
         return os.path.join(dest_dir, os.path.basename(out_files))
@@ -656,7 +656,7 @@ def dictapply(d, fn):
     """
     apply a function to all non-dict values in a dictionary
     """
-    for k, v in d.items():
+    for k, v in list(d.items()):
         if isinstance(v, dict):
             v = dictapply(v, fn)
         else:
@@ -794,7 +794,7 @@ def filter_missing(xs):
     """
     remove items from a list if they evaluate to False
     """
-    return filter(lambda x: x, xs)
+    return [x for x in xs if x]
 
 def rbind(dfs):
     """
@@ -817,7 +817,7 @@ def max_command_length():
     try:
         arg_max = os.sysconf('SC_ARG_MAX')
         env_lines = len(os.environ) * 4
-        env_chars = sum([len(x) + len(y) for x, y in os.environ.items()])
+        env_chars = sum([len(x) + len(y) for x, y in list(os.environ.items())])
         arg_length = arg_max - env_lines - 2048
     except ValueError:
         arg_length = DEFAULT_MAX_LENGTH
@@ -887,7 +887,7 @@ def walk_json(d, func):
     """ Walk over a parsed JSON nested structure `d`, apply `func` to each leaf element and replace it with result
     """
     if isinstance(d, Mapping):
-        return OrderedDict((k, walk_json(v, func)) for k, v in d.items())
+        return OrderedDict((k, walk_json(v, func)) for k, v in list(d.items()))
     elif isinstance(d, list):
         return [walk_json(v, func) for v in d]
     else:

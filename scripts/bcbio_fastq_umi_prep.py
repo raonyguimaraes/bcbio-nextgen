@@ -29,7 +29,7 @@ autopair assumes 3 sets of reads based on the way bcl2fastq exports index reads:
 If you're using a different approach to generate the UMIs, please
 maintain the same R1/R2/R3 naming scheme.
 """
-from __future__ import print_function
+
 import argparse
 import math
 import os
@@ -76,7 +76,7 @@ def add_umis_to_fastq_parallel(out_base, read1_fq, read2_fq, umi_fq, tags, cores
     add_umis_to_fastq(out_base, read1_fq, read2_fq, umi_fq, tags, cores)
 
 def add_umis_to_fastq(out_base, read1_fq, read2_fq, umi_fq, tags=None, cores=1):
-    print("Adding UMIs from", umi_fq, "to read headers in", " ".join([x for x in read1_fq, read2_fq if x]))
+    print("Adding UMIs from", umi_fq, "to read headers in", " ".join([x for x in (read1_fq, read2_fq) if x]))
     out1_fq = out_base + "_R1.fq.gz"
     out2_fq = out_base + "_R2.fq.gz"
     if umi_fq and not tags:

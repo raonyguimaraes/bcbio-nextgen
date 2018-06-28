@@ -13,7 +13,7 @@ def create(parallel):
 
     TODO Startup/tear-down. Currently using default queue for testing
     """
-    queue = {k: v for k, v in parallel.items() if k in ["queue", "cores_per_job", "mem"]}
+    queue = {k: v for k, v in list(parallel.items()) if k in ["queue", "cores_per_job", "mem"]}
     yield queue
 
 def runner(queue, parallel):
@@ -25,7 +25,7 @@ def runner(queue, parallel):
         fn = getattr(__import__("{base}.clusterktasks".format(base=parallel["module"]),
                                 fromlist=["clusterktasks"]),
                      parallel["wrapper"])
-        wrap_parallel = {k: v for k, v in parallel.items() if k in set(["fresources", "pack"])}
+        wrap_parallel = {k: v for k, v in list(parallel.items()) if k in set(["fresources", "pack"])}
         out = []
         for data in [fn(fn_name, queue, parallel.get("wrapper_args"), wrap_parallel, x) for x in items]:
             if data:

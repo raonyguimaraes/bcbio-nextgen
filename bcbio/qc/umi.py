@@ -36,7 +36,7 @@ def run(_, data, out_dir):
                     if key != cur_key:
                         # update counts
                         if cur_counts:
-                            for c in cur_counts.values():
+                            for c in list(cur_counts.values()):
                                 umi_counts[c] += 1
                             total_seqs = sum(cur_counts.values())
                             umi_count = len(cur_counts)
@@ -46,7 +46,7 @@ def run(_, data, out_dir):
                         cur_counts = collections.defaultdict(int)
                     cur_counts[umi] += 1
             if cur_counts:
-                for c in cur_counts.values():
+                for c in list(cur_counts.values()):
                     umi_counts[c] += 1
                 total_seqs = sum(cur_counts.values())
                 umi_count = len(cur_counts)

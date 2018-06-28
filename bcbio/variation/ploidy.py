@@ -27,12 +27,12 @@ def _configured_ploidy(items):
     for data in items:
         ploidy = dd.get_ploidy(data)
         if isinstance(ploidy, dict):
-            for k, v in ploidy.items():
+            for k, v in list(ploidy.items()):
                 ploidies[k].add(v)
         else:
             ploidies["default"].add(ploidy)
     out = {}
-    for k, vs in ploidies.items():
+    for k, vs in list(ploidies.items()):
         assert len(vs) == 1, "Multiple ploidies set for group calling: %s %s" % (k, list(vs))
         out[k] = vs.pop()
     return out

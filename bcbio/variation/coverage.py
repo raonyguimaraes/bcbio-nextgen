@@ -187,7 +187,7 @@ def _average_bed_coverage(bed_file, target_name, data):
     with utils.open_gzipsafe(depth_file) as fh:
         for line_tokens in (l.rstrip().split() for l in fh if not l.startswith("#")):
             line_tokens = [x for x in line_tokens if x.strip()]
-            start, end = map(int, line_tokens[1:3])
+            start, end = list(map(int, line_tokens[1:3]))
             size = end - start
             avg_covs.append(float(line_tokens[-1]) * size)
             total_len += size

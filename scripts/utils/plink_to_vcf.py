@@ -111,8 +111,8 @@ def fix_vcf_line(parts, ref_base):
         varinfo[4] = ",".join([complements[v] for v in ref.split(",")])
         genotypes = [swap[x] for x in genotypes]
     else:
-        print "Did not associate ref {0} with line: {1}".format(
-            ref_base, varinfo)
+        print("Did not associate ref {0} with line: {1}".format(
+            ref_base, varinfo))
     if varinfo is not None:
         return varinfo + genotypes
 
@@ -135,19 +135,19 @@ def fix_nonref_positions(in_file, ref_file):
                     parts = line.rstrip("\r\n").split("\t")
                     pos = int(parts[1])
                     # handle chr/non-chr naming
-                    if parts[0] not in ref2bit.keys() and parts[0].replace("chr", "") in ref2bit.keys():
+                    if parts[0] not in list(ref2bit.keys()) and parts[0].replace("chr", "") in list(ref2bit.keys()):
                         parts[0] = parts[0].replace("chr", "")
                     # handle X chromosome
-                    elif parts[0] not in ref2bit.keys() and parts[0] == "23":
+                    elif parts[0] not in list(ref2bit.keys()) and parts[0] == "23":
                         for test in ["X", "chrX"]:
-                            if test in ref2bit.keys():
+                            if test in list(ref2bit.keys()):
                                 parts[0] == test
                     ref_base = None
                     if parts[0] not in ignore_chrs:
                         try:
                             ref_base = ref2bit[parts[0]].get(pos-1, pos).upper()
                         except Exception as msg:
-                            print "Skipping line. Failed to retrieve reference base for %s\n%s" % (str(parts), msg)
+                            print("Skipping line. Failed to retrieve reference base for %s\n%s" % (str(parts), msg))
                     parts = fix_vcf_line(parts, ref_base)
                     if parts is not None:
                         out_handle.write("\t".join(parts) + "\n")
@@ -155,7 +155,7 @@ def fix_nonref_positions(in_file, ref_file):
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print "Incorrect arguments"
-        print __doc__
+        print("Incorrect arguments")
+        print(__doc__)
         sys.exit(1)
     main(*sys.argv[1:])

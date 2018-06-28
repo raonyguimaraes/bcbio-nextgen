@@ -70,7 +70,7 @@ def combine_calls_parallel(samples, run_parallel):
     batch_groups, extras = _group_by_batches(samples, _has_ensemble)
     out = []
     if batch_groups:
-        processed = run_parallel("combine_calls", ((b, xs, xs[0]) for b, xs in batch_groups.items()))
+        processed = run_parallel("combine_calls", ((b, xs, xs[0]) for b, xs in list(batch_groups.items())))
         for batch_id, callinfo in processed:
             for data in batch_groups[batch_id]:
                 data["variants"].insert(0, callinfo)

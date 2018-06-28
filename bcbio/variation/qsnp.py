@@ -3,7 +3,7 @@
 https://qcmg.org/bioinformatics/tiki-index.php?page=qSNP#EXAMPLES
 """
 
-from __future__ import print_function
+
 import os
 import shutil
 from re import sub
@@ -84,7 +84,7 @@ def _clean_regions(items, region):
     with utils.tmpfile() as tx_out_file:
         target = subset_variant_regions(variant_regions, region, tx_out_file, items)
         if target:
-            if isinstance(target, basestring) and os.path.isfile(target):
+            if isinstance(target, str) and os.path.isfile(target):
                 target = _load_regions(target)
             else:
                 target = [target]
@@ -130,9 +130,9 @@ def _create_input(paired, out_file, ref_file, snp_file, qsnp_file):
     ini_file["[ids]"]["donor"] = paired.tumor_name
     ini_file["[outputFiles]"]["vcf"] = out_file
     with open(qsnp_file, "w") as out_handle:
-        for k, v in ini_file.items():
+        for k, v in list(ini_file.items()):
             out_handle.write("%s\n" % k)
-            for opt, value in v.items():
+            for opt, value in list(v.items()):
                 if value != "":
                     out_handle.write("%s = %s\n" % (opt, value))
 

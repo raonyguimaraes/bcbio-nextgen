@@ -121,7 +121,7 @@ class FastQCParser:
                 header = data
                 continue
             if data[0].find("-") > -1:  # expand positions 1-3 to 1, 2, 3
-                f, s = map(int, data[0].split("-"))
+                f, s = list(map(int, data[0].split("-")))
                 for pos in range(f, s):
                     dt.append([str(pos)] + data[1:])
             else:

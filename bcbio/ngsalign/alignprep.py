@@ -208,7 +208,7 @@ def merge_split_alignments(samples, run_parallel):
             ready.append([data])
     ready_merge = []
     hla_merges = []
-    for mgroup in to_merge.itervalues():
+    for mgroup in to_merge.values():
         cur_data = mgroup[0]
         del cur_data["align_split"]
         for x in mgroup[1:]:
@@ -258,7 +258,7 @@ def _save_fastq_space(items):
         for fname in data.get("files", []):
             if os.path.realpath(fname).startswith(dd.get_work_dir(data)):
                 to_cleanup[fname] = data["config"]
-    for fname, config in to_cleanup.items():
+    for fname, config in list(to_cleanup.items()):
         utils.save_diskspace(fname, "Cleanup prep files after alignment finished", config)
 
 # ## determine file sections
@@ -267,7 +267,7 @@ def _get_grabix_index(in_file):
     gbi_file = in_file + ".gbi"
     if utils.file_exists(gbi_file):
         with open(gbi_file) as in_handle:
-            header = in_handle.next()
+            header = next(in_handle)
             if header.find("Not grabix indexed") == -1:
                 return gbi_file
 
@@ -283,7 +283,7 @@ def total_reads_from_grabix(in_file):
     gbi_file = _get_grabix_index(in_file)
     if gbi_file:
         with open(gbi_file) as in_handle:
-            in_handle.next()  # throw away
+            next(in_handle)  # throw away
             num_lines = int(in_handle.next().strip())
         assert num_lines % 4 == 0, "Expected lines to be multiple of 4"
         return num_lines // 4

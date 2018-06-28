@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 from datetime import datetime
 import collections
@@ -10,7 +10,7 @@ import re
 import socket
 
 import pandas as pd
-import cPickle as pickle
+import pickle as pickle
 
 from bcbio import utils
 from bcbio.graph.collectl import load_collectl
@@ -165,7 +165,7 @@ def add_common_plot_features(plot, steps):
 
     ymax = plot.get_ylim()[1]
     ticks = {}
-    for tstamp, step in steps.items():
+    for tstamp, step in list(steps.items()):
         if step == 'finished':
             continue
         plot.vlines(tstamp, 0, ymax, linestyles='dashed')
@@ -369,7 +369,7 @@ def generate_graphs(data_frames, hardware_info, steps, outdir,
     # Hash of hosts containing (data, hardware, steps) tuple
     collectl_info = collections.defaultdict(dict)
 
-    for host, data_frame in data_frames.items():
+    for host, data_frame in list(data_frames.items()):
         if verbose:
             print('Generating CPU graph for {}...'.format(host))
         graph, data_cpu = graph_cpu(data_frame, steps, hardware_info[host]['num_cpus'])
@@ -380,7 +380,7 @@ def generate_graphs(data_frames, hardware_info, steps, outdir,
         pylab.close()
 
         ifaces = set([series.split('_')[0]
-                      for series in data_frame.keys()
+                      for series in list(data_frame.keys())
                       if series.startswith(('eth', 'ib'))])
 
         if verbose:
@@ -409,7 +409,7 @@ def generate_graphs(data_frames, hardware_info, steps, outdir,
             print('Generating storage I/O graph for {}...'.format(host))
         drives = set([
             series.split('_')[0]
-            for series in data_frame.keys()
+            for series in list(data_frame.keys())
             if series.startswith(('sd', 'vd', 'hd', 'xvd'))
         ])
         graph, data_disk = graph_disk_io(data_frame, steps, drives)

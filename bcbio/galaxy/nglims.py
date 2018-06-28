@@ -1,6 +1,6 @@
 """Integration with Galaxy nglims.
 """
-from __future__ import print_function
+
 import collections
 import copy
 import glob
@@ -18,6 +18,7 @@ from bcbio.galaxy.api import GalaxyApiAccess
 from bcbio.illumina import flowcell
 from bcbio.pipeline.run_info import clean_name
 from bcbio.workflow import template
+from functools import reduce
 
 def prep_samples_and_config(run_folder, ldetails, fastq_dir, config):
     """Prepare sample fastq files and provide global sample configuration for the flowcell.
@@ -74,7 +75,7 @@ def _prepare_sample(data, run_folder):
     """
     want = set(["description", "files", "genome_build", "name", "analysis", "upload", "algorithm"])
     out = {}
-    for k, v in data.items():
+    for k, v in list(data.items()):
         if k in want:
             out[k] = _relative_paths(v, run_folder)
     if "algorithm" not in out:
@@ -105,7 +106,7 @@ def _select_default_algorithm(analysis):
 def _relative_paths(xs, base_path):
     """Adjust paths to be relative to the provided base path.
     """
-    if isinstance(xs, basestring):
+    if isinstance(xs, str):
         if xs.startswith(base_path):
             return xs.replace(base_path + "/", "", 1)
         else:
@@ -114,7 +115,7 @@ def _relative_paths(xs, base_path):
         return [_relative_paths(x, base_path) for x in xs]
     elif isinstance(xs, dict):
         out = {}
-        for k, v in xs.items():
+        for k, v in list(xs.items()):
             out[k] = _relative_paths(v, base_path)
         return out
     else:
@@ -142,7 +143,7 @@ def _group_same_samples(ldetails):
     sample_groups = collections.defaultdict(list)
     for ldetail in ldetails:
         sample_groups[ldetail["name"]].append(ldetail)
-    return sorted(sample_groups.values(), key=lambda xs: xs[0]["name"])
+    return sorted(list(sample_groups.values()), key=lambda xs: xs[0]["name"])
 
 def get_runinfo(galaxy_url, galaxy_apikey, run_folder, storedir):
     """Retrieve flattened run information for a processed directory from Galaxy nglims API.

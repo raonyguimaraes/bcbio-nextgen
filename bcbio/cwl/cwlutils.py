@@ -53,11 +53,11 @@ def normalize_missing(xs):
     """Normalize missing values to avoid string 'None' inputs.
     """
     if isinstance(xs, dict):
-        for k, v in xs.items():
+        for k, v in list(xs.items()):
             xs[k] = normalize_missing(v)
     elif isinstance(xs, (list, tuple)):
         xs = [normalize_missing(x) for x in xs]
-    elif isinstance(xs, basestring):
+    elif isinstance(xs, str):
         if xs.lower() in ["none", "null"]:
             xs = None
         elif xs.lower() == "true":
@@ -76,11 +76,11 @@ def unpack_tarballs(xs, data, use_subdir=True):
     """Unpack workflow tarballs into ready to use directories.
     """
     if isinstance(xs, dict):
-        for k, v in xs.items():
+        for k, v in list(xs.items()):
             xs[k] = unpack_tarballs(v, data, use_subdir)
     elif isinstance(xs, (list, tuple)):
         xs = [unpack_tarballs(x, data, use_subdir) for x in xs]
-    elif isinstance(xs, basestring):
+    elif isinstance(xs, str):
         if os.path.isfile(xs.encode("utf-8", "ignore")) and xs.endswith("-wf.tar.gz"):
             if use_subdir:
                 tarball_dir = utils.safe_makedir(os.path.join(dd.get_work_dir(data), "wf-inputs"))
@@ -205,7 +205,7 @@ def assign_complex_to_samples(items):
     """
     extract_fns = {("variants", "samples"): _get_vcf_samples,
                    ("align_bam",): _get_bam_samples}
-    complex = {k: {} for k in extract_fns.keys()}
+    complex = {k: {} for k in list(extract_fns.keys())}
     for data in items:
         for k in complex:
             v = tz.get_in(k, data)

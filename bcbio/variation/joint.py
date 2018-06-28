@@ -44,7 +44,7 @@ def batch_for_jointvc(items):
             data = utils.deepish_copy(data)
             data["vrn_file_gvcf"] = data["vrn_file"]
             batch_groups[(b, vc)].append(data)
-    return batch_groups.values()
+    return list(batch_groups.values())
 
 def run_jointvc(items):
     items = [utils.to_single_data(x) for x in items]
@@ -82,7 +82,7 @@ def _get_callable_regions(data):
         assert len(callable_files) == 1
         regions = [(r.chrom, int(r.start), int(r.stop)) for r in pybedtools.BedTool(callable_files[0])]
     else:
-        work_bam = list(tz.take(1, filter(lambda x: x.endswith(".bam"), data["work_bams"])))
+        work_bam = list(tz.take(1, [x for x in data["work_bams"] if x.endswith(".bam")]))
         if work_bam:
             with pysam.Samfile(work_bam[0], "rb") as pysam_bam:
                 regions = [(chrom, 0, length) for (chrom, length) in zip(pysam_bam.references,
@@ -153,7 +153,7 @@ def _combine_to_jointcaller(processed):
             by_vrn_file[key] = []
         by_vrn_file[key].append(data)
     out = []
-    for grouped_data in by_vrn_file.values():
+    for grouped_data in list(by_vrn_file.values()):
         cur = grouped_data[0]
         out.append([cur])
     return out

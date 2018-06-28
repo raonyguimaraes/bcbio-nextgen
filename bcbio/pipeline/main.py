@@ -2,7 +2,7 @@
 
 Handles running the full pipeline based on instructions
 """
-from __future__ import print_function
+
 from collections import defaultdict
 import copy
 import os
@@ -85,7 +85,7 @@ def _run_toplevel(config, config_file, work_dir, parallel,
     system.write_info(dirs, parallel, config)
     with tx_tmpdir(config if parallel.get("type") == "local" else None) as tmpdir:
         tempfile.tempdir = tmpdir
-        for pipeline, samples in pipelines.items():
+        for pipeline, samples in list(pipelines.items()):
             for xs in pipeline(config, run_info_yaml, parallel, dirs, samples):
                 pass
 
@@ -440,11 +440,11 @@ def _pair_samples_with_pipelines(run_info_yaml, config):
         usample.pop("algorithm", None)
         if "resources" not in usample:
             usample["resources"] = {}
-        for prog, pkvs in resources.items():
+        for prog, pkvs in list(resources.items()):
             if prog not in usample["resources"]:
                 usample["resources"][prog] = {}
             if pkvs is not None:
-                for key, val in pkvs.items():
+                for key, val in list(pkvs.items()):
                     usample["resources"][prog][key] = val
         config = config_utils.update_w_custom(config, usample)
         sample["resources"] = {}

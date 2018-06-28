@@ -6,7 +6,7 @@ along with variant frequencies.
 https://github.com/morrislab/phylowgs
 http://genomebiology.com/2015/16/1/35
 """
-from __future__ import print_function
+
 import collections
 import os
 import sys
@@ -246,7 +246,7 @@ def _min_sample_pass(ignore_file):
     with open(ignore_file) as in_handle:
         ignore_chrs = set([x.strip() for x in in_handle])
     def _check(rec):
-        return rec.chrom not in ignore_chrs and _is_snp(rec) and "PASS" in rec.filter.keys()
+        return rec.chrom not in ignore_chrs and _is_snp(rec) and "PASS" in list(rec.filter.keys())
     return _check
 
 def _sample_depth(rec, sample_name):

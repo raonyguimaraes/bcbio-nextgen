@@ -116,7 +116,7 @@ def _get_record_attrs(out_keys):
     """Check for records, a single key plus output attributes.
     """
     if len(out_keys) == 1:
-        attr = out_keys.keys()[0]
+        attr = list(out_keys.keys())[0]
         if out_keys[attr]:
             return attr, out_keys[attr]
     return None, None
@@ -128,7 +128,7 @@ def _add_resources(data, runtime):
         data["config"] = {}
     # Convert input resources, which may be a JSON string
     resources = data.get("resources", {}) or {}
-    if isinstance(resources, basestring) and resources.startswith(("{", "[")):
+    if isinstance(resources, str) and resources.startswith(("{", "[")):
         resources = json.loads(resources)
         data["resources"] = resources
     assert isinstance(resources, dict), (resources, data)
@@ -213,7 +213,7 @@ def _read_from_cwlinput(in_file, work_dir, runtime, parallel, input_order, outpu
         inputs = json.load(in_handle)
     items_by_key = {}
     passed_keys = set([])
-    for key, input_val in ((k, v) for (k, v) in inputs.items() if not k.startswith(("sentinel", "ignore"))):
+    for key, input_val in ((k, v) for (k, v) in list(inputs.items()) if not k.startswith(("sentinel", "ignore"))):
         if key.endswith("_toolinput"):
             key = key.replace("_toolinput", "")
         if input_order[key] == "record":
@@ -239,10 +239,10 @@ def _maybe_nest_bare_single(items_by_key, parallel):
     """Nest single inputs to avoid confusing single items and lists like files.
     """
     if (parallel == "multi-parallel" and
-          (sum([1 for x in items_by_key.values() if not _is_nested_item(x)]) >=
-           sum([1 for x in items_by_key.values() if _is_nested_item(x)]))):
+          (sum([1 for x in list(items_by_key.values()) if not _is_nested_item(x)]) >=
+           sum([1 for x in list(items_by_key.values()) if _is_nested_item(x)]))):
         out = {}
-        for k, v in items_by_key.items():
+        for k, v in list(items_by_key.items()):
             out[k] = [v]
         return out
     else:
@@ -260,7 +260,7 @@ def _check_for_single_nested(target, items_by_key, input_order):
     Handles complex var inputs where some have an extra layer of nesting.
     """
     out = utils.deepish_copy(items_by_key)
-    for (k, t) in input_order.items():
+    for (k, t) in list(input_order.items()):
         if t == "var":
             v = items_by_key[tuple(k.split("__"))]
             if _is_nested_single(v, target):
@@ -276,15 +276,15 @@ def _merge_cwlinputs(items_by_key, input_order, parallel):
     """
     items_by_key = _maybe_nest_bare_single(items_by_key, parallel)
     var_items = set([_item_count(items_by_key[tuple(k.split("__"))])
-                     for (k, t) in input_order.items() if t == "var"])
-    rec_items = set([_item_count(items_by_key[k]) for (k, t) in input_order.items() if t == "record"])
+                     for (k, t) in list(input_order.items()) if t == "var"])
+    rec_items = set([_item_count(items_by_key[k]) for (k, t) in list(input_order.items()) if t == "record"])
     if var_items:
         num_items = var_items
         if len(num_items) == 2 and 1 in num_items:
             num_items.remove(1)
             items_by_key_test = _check_for_single_nested(num_items.pop(), items_by_key, input_order)
             var_items = set([_item_count(items_by_key_test[tuple(k.split("__"))])
-                             for (k, t) in input_order.items() if t == "var"])
+                             for (k, t) in list(input_order.items()) if t == "var"])
             num_items = var_items
         assert len(num_items) == 1, "Non-consistent variable data counts in CWL input:\n%s" % \
             (pprint.pformat(items_by_key))
@@ -295,7 +295,7 @@ def _merge_cwlinputs(items_by_key, input_order, parallel):
             (pprint.pformat(items_by_key))
     target_items = num_items.pop()
     out = [{} for _ in range(target_items)]
-    for (cwl_key, cwl_type) in input_order.items():
+    for (cwl_key, cwl_type) in list(input_order.items()):
         if cwl_type == "var":
             cwl_key = tuple(cwl_key.split("__"))
         cur_vals = items_by_key[cwl_key]
@@ -317,7 +317,7 @@ def _merge_cwlinputs(items_by_key, input_order, parallel):
                 if isinstance(cur_val, (list, tuple)) and len(cur_val) == 1:
                     cur_val = cur_val[0]
                 assert isinstance(cur_val, dict), (cwl_key, cur_val)
-                for k, v in cur_val.items():
+                for k, v in list(cur_val.items()):
                     out[i] = _update_nested([k], v, out[i], allow_overwriting=True)
     return out
 
@@ -332,7 +332,7 @@ def _nest_vars_in_rec(var_items, rec_items, input_order, items_by_key, parallel)
         rec_items = list(rec_items)[0]
         if ((rec_items == 1 and var_items > 1) or parallel.startswith("batch")):
             num_items = set([rec_items])
-            for var_key in (k for (k, t) in input_order.items() if t != "record"):
+            for var_key in (k for (k, t) in list(input_order.items()) if t != "record"):
                 var_key = tuple(var_key.split("__"))
                 items_by_key[var_key] = [items_by_key[var_key]] * rec_items
         else:
@@ -348,7 +348,7 @@ def _expand_rec_to_vars(var_items, rec_items, input_order, items_by_key, paralle
     num_items = var_items
     var_items = list(var_items)[0]
     if rec_items:
-        for rec_key in (k for (k, t) in input_order.items() if t == "record"):
+        for rec_key in (k for (k, t) in list(input_order.items()) if t == "record"):
             rec_vals = items_by_key[rec_key]
             if len(rec_vals) == 1 and var_items > 1:
                 items_by_key[rec_key] = rec_vals * var_items
@@ -362,9 +362,9 @@ def _read_cwl_record(rec):
     keys = set([])
     out = []
     if isinstance(rec, dict):
-        is_batched = all([isinstance(v, (list, tuple)) for v in rec.values()])
-        cur = [{} for _ in range(len(rec.values()[0]) if is_batched else 1)]
-        for k in rec.keys():
+        is_batched = all([isinstance(v, (list, tuple)) for v in list(rec.values())])
+        cur = [{} for _ in range(len(list(rec.values())[0]) if is_batched else 1)]
+        for k in list(rec.keys()):
             keys.add(k)
             val = rec[k]
             val = val if is_batched else [val]
@@ -512,7 +512,7 @@ def _collapse_to_cwl_record(samples, want_attrs):
 def _to_cwl(val):
     """Convert a value into CWL formatted JSON, handling files and complex things.
     """
-    if isinstance(val, basestring):
+    if isinstance(val, str):
         if os.path.exists(val) and os.path.isfile(val):
             val = {"class": "File", "path": val}
             secondary = []
@@ -570,7 +570,7 @@ def _update_nested(key, val, data, allow_overwriting=False):
     """Update the data object, avoiding over-writing with nested dictionaries.
     """
     if isinstance(val, dict):
-        for sub_key, sub_val in val.items():
+        for sub_key, sub_val in list(val.items()):
             data = _update_nested(key + [sub_key], sub_val, data, allow_overwriting=allow_overwriting)
     else:
         already_there = tz.get_in(key, data) is not None

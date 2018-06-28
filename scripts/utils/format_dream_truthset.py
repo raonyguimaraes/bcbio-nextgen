@@ -26,7 +26,7 @@ def main(vcf_file, fai_file):
                 nocall_region = _write_event(line, out)
                 if nocall_region:
                     nocall_regions.append(nocall_region)
-    for h in out.values():
+    for h in list(out.values()):
         h.close()
     _write_outbed(nocall_regions, fai_file, out_bed)
     subprocess.check_call(["bgzip", "-f", out_vcf])
@@ -75,7 +75,7 @@ def _prep_out_handles(base_file):
     for event in ["DEL", "DUP", "INS", "INV"]:
         fs[event] = "%s_sv_%s.bed" % (base, event)
     out = {}
-    for key, f in fs.items():
+    for key, f in list(fs.items()):
         out[key] = open(f, "w")
     return out, out_vcf, out_bed
 

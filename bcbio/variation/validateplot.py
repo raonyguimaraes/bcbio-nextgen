@@ -52,7 +52,7 @@ def classifyplot_from_valfile(val_file, outtype="png", title=None, size=None,
 def _calculate_fnr_fdr(group):
     """Calculate the false negative rate (1 - sensitivity) and false discovery rate (1 - precision).
     """
-    data = {k: d["value"] for k, d in group.set_index("metric").T.to_dict().items()}
+    data = {k: d["value"] for k, d in list(group.set_index("metric").T.to_dict().items())}
     return pd.DataFrame([{"fnr": data["fn"] / float(data["tp"] + data["fn"]) * 100.0 if data["tp"] > 0 else 0.0,
                           "fdr": data["fp"] / float(data["tp"] + data["fp"]) * 100.0 if data["tp"] > 0 else 0.0,
                           "tpr": "TP: %s FN: %s" % (data["tp"], data["fn"]),
@@ -95,7 +95,7 @@ def _do_classifyplot(df, out_file, title=None, size=None, samples=None, callers=
                         labels.append(cur_data[label])
                 cur_plot.barh(np.arange(len(vals)), vals, color=sns.xkcd_palette([colors[vi]]))
                 all_vals = []
-                for k, d in data_dict.items():
+                for k, d in list(data_dict.items()):
                     if k[-1] == vtype:
                         for m in metrics:
                             all_vals.append(d[m[0]])
@@ -277,7 +277,7 @@ def _annotate(ax, annotate, height, left, width):
 
     offset_ = yrange * annotate_yrange_factor
     if isinstance(annotate, collections.Iterable):
-        annotations = map(str, annotate)
+        annotations = list(map(str, annotate))
     else:
         annotations = ['%.3f' % h if type(h) is np.float_ else str(h)
                        for h in height]
@@ -343,7 +343,7 @@ def get_group_floors(df, cat_labels):
             group_maxes[stype].append(max(group["value"]))
         group_maxes[name].append(max(group["value"]))
     out = {}
-    for k, vs in group_maxes.items():
+    for k, vs in list(group_maxes.items()):
         if k in group_diffs:
             out[k] = max(max(group_diffs[stype]), min(vs))
         else:

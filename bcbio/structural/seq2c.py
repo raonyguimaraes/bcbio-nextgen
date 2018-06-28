@@ -95,7 +95,7 @@ def prep_seq2c_bed(data):
     if not utils.file_uptodate(ready_file, annotated_file):
         bed = bt.BedTool(annotated_file)
         if col_num > 4 and col_num != 8:
-            bed = bed.cut(range(4))
+            bed = bed.cut(list(range(4)))
         bed = bed.filter(lambda x: x.name not in ["", ".", "-"])
         with file_transaction(data, ready_file) as tx_out_file:
             bed.saveas(tx_out_file)
@@ -112,7 +112,7 @@ def _get_seq2c_options(data):
     assert len(ropts) % 2 == 0, "Expect even number of options for seq2c" % ropts
     defaults.update(dict(tz.partition(2, ropts)))
     cov2lr_out, lr2gene_out = [], []
-    for k, v in defaults.items():
+    for k, v in list(defaults.items()):
         if k in cov2lr_possible_opts:
             cov2lr_out += [str(k), str(v)]
         else:
@@ -186,7 +186,7 @@ def to_vcf(in_tsv, data):
                     out_handle.write(VCF_HEADER + "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t%s\n"
                                      % (dd.get_sample_name(data)))
                     header = in_handle.readline().split("\t")
-                    for cur in (dict(zip(header, l.split("\t"))) for l in in_handle):
+                    for cur in (dict(list(zip(header, l.split("\t")))) for l in in_handle):
                         if cur["Amp_Del"] in call_convert:
                             svtype = call_convert[cur["Amp_Del"]]
                             info = "SVTYPE=%s;END=%s;SVLEN=%s;FOLD_CHANGE_LOG=%s;PROBES=%s;GENE=%s" % (

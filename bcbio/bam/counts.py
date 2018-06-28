@@ -3,7 +3,7 @@
 These are useful for plotting comparisons between BAM files to look at
 differences in defined or random regions.
 """
-from __future__ import print_function
+
 import random
 import collections
 
@@ -59,7 +59,7 @@ def random_regions(base, n, size):
         base_info[space].append(end - spread)
     regions = []
     for _ in range(n):
-        space = random.choice(base_info.keys())
+        space = random.choice(list(base_info.keys()))
         pos = random.randint(min(base_info[space]), max(base_info[space]))
         regions.append([space, pos-spread, pos+spread])
     return regions

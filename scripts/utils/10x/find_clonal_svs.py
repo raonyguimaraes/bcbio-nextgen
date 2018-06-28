@@ -46,7 +46,7 @@ def _fix_start_end(rec):
     end = int(info["END"])
     if end < start:
         info["END"] = str(start)
-        parts[7] = ";".join(["%s=%s" % (k, v) for (k, v) in info.items()])
+        parts[7] = ";".join(["%s=%s" % (k, v) for (k, v) in list(info.items())])
         parts[1] = str(end)
         return "\t".join(parts)
     else:
@@ -59,7 +59,7 @@ def _has_call(g):
     return any([gt not in [".", "N"] for gt in gts])
 
 def _summarize(classification, rec):
-    print(classification, rec.CHROM, rec.POS, rec.INFO["SVTYPE"], rec.INFO["AVGLEN"])
+    print((classification, rec.CHROM, rec.POS, rec.INFO["SVTYPE"], rec.INFO["AVGLEN"]))
 
 def parse_name(x):
     return os.path.basename(x).split("-")[0]

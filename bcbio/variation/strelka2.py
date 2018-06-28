@@ -38,7 +38,7 @@ def get_region_bed(region, items, out_file, want_gzip=True):
     target = shared.subset_variant_regions(variant_regions, region, out_file, items)
     if not target:
         raise ValueError("Need BED input for strelka2 regions: %s %s" % (region, target))
-    if not isinstance(target, basestring) or not os.path.isfile(target):
+    if not isinstance(target, str) or not os.path.isfile(target):
         chrom, start, end = target
         target = "%s-regions.bed" % utils.splitext_plus(out_file)[0]
         with file_transaction(items[0], target) as tx_out_file:
@@ -74,7 +74,7 @@ def coverage_interval_from_bed(bed_file, per_chrom=True):
                     start = int(start)
                     end = int(end)
                     bed_bases[chrom] += (end - start)
-                    total_starts[chrom] = min([start, total_starts.get(chrom, sys.maxint)])
+                    total_starts[chrom] = min([start, total_starts.get(chrom, sys.maxsize)])
                     total_ends[chrom] = max([end, total_ends.get(chrom, 0)])
     # can check per chromosome -- any one chromosome with larger, or over all regions
     if per_chrom:

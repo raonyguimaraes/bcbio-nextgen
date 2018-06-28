@@ -76,7 +76,7 @@ def _parse_samtools_stats(stats_file):
                 stat = float(stat_str.strip())
                 out[want[metric]] = stat
     # Ensure we have zero values for any metrics not present in stats output
-    for metric in want.values():
+    for metric in list(want.values()):
         if metric not in out:
             out[metric] = 0
     return out

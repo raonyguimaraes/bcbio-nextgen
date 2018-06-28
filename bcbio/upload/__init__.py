@@ -126,7 +126,7 @@ def _add_meta(xs, sample=None, config=None):
     """
     out = []
     for x in xs:
-        if not isinstance(x["path"], basestring) or not os.path.exists(x["path"]):
+        if not isinstance(x["path"], str) or not os.path.exists(x["path"]):
             raise ValueError("Unexpected path for upload: %s" % x)
         x["mtime"] = shared.get_file_timestamp(x["path"])
         if sample:
@@ -201,7 +201,7 @@ def _maybe_add_variant_file(algorithm, sample, out):
                             "ext": "%s-callregions" % x["variantcaller"],
                             "variantcaller": x["variantcaller"]})
             if x.get("vrn_stats"):
-                for extra, fname in x["vrn_stats"].items():
+                for extra, fname in list(x["vrn_stats"].items()):
                     ext = utils.splitext_plus(fname)[-1].replace(".", "")
                     out.append({"path": fname,
                                 "type": ext,
@@ -225,7 +225,7 @@ def _maybe_add_heterogeneity(algorithm, sample, out):
             out.append({"path": report,
                         "type": utils.splitext_plus(report)[-1].replace(".", "").replace("-", ""),
                         "ext": "%s-report" % (hetinfo["caller"])})
-        for plot_type, plot_file in hetinfo.get("plots", {}).items():
+        for plot_type, plot_file in list(hetinfo.get("plots", {}).items()):
             if plot_file and os.path.exists(plot_file):
                 out.append({"path": plot_file,
                             "type": utils.splitext_plus(plot_file)[-1].replace(".", ""),
@@ -257,7 +257,7 @@ def _maybe_add_sv(algorithm, sample, out):
             out.extend(_get_variant_file(svcall, ("call_file",), suffix="-call", sample=batch))
             out.extend(_get_variant_file(svcall, ("priority",), suffix="-priority", sample=batch))
             if "plot" in svcall:
-                for plot_name, fname in svcall["plot"].items():
+                for plot_name, fname in list(svcall["plot"].items()):
                     ext = os.path.splitext(fname)[-1].replace(".", "")
                     out.append({"path": fname,
                                 "sample": batch,
@@ -265,7 +265,7 @@ def _maybe_add_sv(algorithm, sample, out):
                                 "ext": "%s-%s" % (svcall["variantcaller"], plot_name),
                                 "variantcaller": svcall["variantcaller"]})
             if "raw_files" in svcall:
-                for caller, fname in svcall["raw_files"].items():
+                for caller, fname in list(svcall["raw_files"].items()):
                     ext = utils.splitext_plus(fname)[-1][1:]
                     out.append({"path": fname,
                                 "sample": batch,
@@ -294,7 +294,7 @@ def _maybe_add_sv(algorithm, sample, out):
                 if vfile:
                     to_u = []
                     if isinstance(vfile, dict):
-                        for svtype, fname in vfile.items():
+                        for svtype, fname in list(vfile.items()):
                             to_u.append((fname, "-%s" % svtype))
                     else:
                         to_u.append((vfile, "-%s" % vkey if vkey in ["df"] else ""))
@@ -420,7 +420,7 @@ def _maybe_add_summary(algorithm, sample, out):
                         "type": "pdf",
                         "ext": "summary"})
         if sample["summary"].get("qc"):
-            for program, finfo in sample["summary"]["qc"].items():
+            for program, finfo in list(sample["summary"]["qc"].items()):
                 out.extend(_flatten_file_with_secondary(finfo, os.path.join("qc", program)))
         if utils.get_in(sample, ("summary", "researcher")):
             out.append({"path": sample["summary"]["researcher"],
@@ -459,7 +459,7 @@ def _maybe_add_alignment(algorithm, sample, out):
 
 def _maybe_add_disambiguate(algorithm, sample, out):
     if "disambiguate" in sample and _has_alignment_file(algorithm, sample):
-        for extra_name, fname in sample["disambiguate"].items():
+        for extra_name, fname in list(sample["disambiguate"].items()):
             ftype = os.path.splitext(fname)[-1].replace(".", "")
             fext = ".bai" if ftype == "bam" else ""
             if fname and os.path.exists(fname):

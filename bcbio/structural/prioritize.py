@@ -39,7 +39,7 @@ def run(items):
                           for vcaller, vfile, post_prior_fn in inputs]
         priority_tsv = _combine_files([xs[0] for xs in priority_files], work_dir, data)
         data["sv"].append({"variantcaller": "sv-prioritize", "vrn_file": priority_tsv,
-                           "raw_files": dict(zip([xs[0] for xs in inputs], [xs[1] for xs in priority_files]))})
+                           "raw_files": dict(list(zip([xs[0] for xs in inputs], [xs[1] for xs in priority_files])))})
     data = _cnv_prioritize(data)
     return [data]
 

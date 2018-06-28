@@ -104,7 +104,7 @@ def _normalize_cwl_inputs(items):
     else:
         assert len(with_validate) == 1, len(with_validate)
         assert len(set(vrn_files)) == 1, set(vrn_files)
-        data = with_validate.values()[0]
+        data = list(with_validate.values())[0]
         data["batch_samples"] = batch_samples
         data["vrn_file"] = vrn_files[0]
         return data
@@ -424,7 +424,7 @@ def _get_location_list(interval_bed):
     regions = collections.OrderedDict()
     for region in pybedtools.BedTool(interval_bed):
         regions[str(region.chrom)] = None
-    return regions.keys()
+    return list(regions.keys())
 
 # ## bcbio.variation comparison -- deprecated approach
 
@@ -439,9 +439,9 @@ def _run_bcbio_variation(vrn_file, rm_file, rm_interval_file, base_dir, sample, 
            "discordant": os.path.join(work_dir, "%s-eval-ref-discordance-annotate.vcf" % sample)}
     if not utils.file_exists(out["discordant"]) or not utils.file_exists(out["grading"]):
         bcbio_variation_comparison(val_config_file, base_dir, data)
-    out["concordant"] = filter(os.path.exists,
+    out["concordant"] = list(filter(os.path.exists,
                                 [os.path.join(work_dir, "%s-%s-concordance.vcf" % (sample, x))
-                                 for x in ["eval-ref", "ref-eval"]])[0]
+                                 for x in ["eval-ref", "ref-eval"]]))[0]
     return out
 
 def bcbio_variation_comparison(config_file, base_dir, data):
@@ -501,7 +501,7 @@ def _flatten_grading(stats):
         for vclass, vitems in sorted(stats["discordant"].get(vtype, {}).items()):
             for vreason, val in sorted(vitems.items()):
                 yield vtype, "discordant-%s-%s" % (vclass, vreason), val
-            yield vtype, "discordant-%s-total" % vclass, sum(vitems.itervalues())
+            yield vtype, "discordant-%s-total" % vclass, sum(vitems.values())
 
 def _has_grading_info(samples, vkey):
     for data in samples:
@@ -525,7 +525,7 @@ def _group_validate_samples(samples, vkey, batch_keys):
         if is_v:
             for batch_key in batch_keys:
                 vname = tz.get_in(batch_key, data)
-                if vname and not (isinstance(vname, basestring) and vname.lower() in ["none", "false"]):
+                if vname and not (isinstance(vname, str) and vname.lower() in ["none", "false"]):
                     break
             if isinstance(vname, (list, tuple)):
                 vname = vname[0]
@@ -548,7 +548,7 @@ def summarize_grading(samples, vkey="validate"):
     _summarize_combined(samples, vkey)
     validated, out = _group_validate_samples(samples, vkey,
                                              (["metadata", "validate_batch"], ["metadata", "batch"], ["description"]))
-    for vname, vitems in validated.items():
+    for vname, vitems in list(validated.items()):
         out_csv = os.path.join(validate_dir, "grading-summary-%s.csv" % vname)
         with open(out_csv, "w") as out_handle:
             writer = csv.writer(out_handle)
@@ -595,7 +595,7 @@ def _summarize_combined(samples, vkey):
     """
     validate_dir = utils.safe_makedir(os.path.join(samples[0]["dirs"]["work"], vkey))
     combined, _ = _group_validate_samples(samples, vkey, [["metadata", "validate_combine"]])
-    for vname, vitems in combined.items():
+    for vname, vitems in list(combined.items()):
         if vname:
             cur_combined = collections.defaultdict(int)
             for data in sorted(vitems, key=lambda x: x.get("lane", dd.get_sample_name(x))):
@@ -606,7 +606,7 @@ def _summarize_combined(samples, vkey):
                 for validate in validations:
                     with open(validate["summary"]) as in_handle:
                         reader = csv.reader(in_handle)
-                        reader.next()  # header
+                        next(reader)  # header
                         for _, caller, vtype, metric, value in reader:
                             cur_combined[(caller, vtype, metric)] += int(value)
             out_csv = os.path.join(validate_dir, "grading-summary-%s.csv" % vname)
@@ -614,7 +614,7 @@ def _summarize_combined(samples, vkey):
                 writer = csv.writer(out_handle)
                 header = ["sample", "caller", "vtype", "metric", "value"]
                 writer.writerow(header)
-                for (caller, variant_type, category), val in cur_combined.items():
+                for (caller, variant_type, category), val in list(cur_combined.items()):
                     writer.writerow(["combined-%s" % vname, caller, variant_type, category, val])
             plots = validateplot.classifyplot_from_valfile(out_csv)
 
@@ -701,8 +701,8 @@ def _read_call_freqs(in_file, sample_name):
     out = {}
     with VariantFile(in_file) as call_in:
         for rec in call_in:
-            if rec.filter.keys() == ["PASS"]:
-                for name, sample in rec.samples.items():
+            if list(rec.filter.keys()) == ["PASS"]:
+                for name, sample in list(rec.samples.items()):
                     if name == sample_name:
                         alt, depth, freq = bubbletree.sample_alt_and_depth(rec, sample)
                         if freq is not None:

@@ -65,7 +65,7 @@ class PicardMetricsParser(object):
                 parse_fn = None
             if parse_fn:
                 with open(fname) as in_handle:
-                    for key, val in parse_fn(in_handle).items():
+                    for key, val in list(parse_fn(in_handle).items()):
                         if not key.startswith(prefix):
                             key = "%s_%s" % (prefix, key)
                         all_metrics[key] = val
@@ -220,7 +220,7 @@ class PicardMetricsParser(object):
             vals = self._read_vals_of_interest(want_stats, header, info)
             if info[0].lower() == "pair":
                 new_vals = dict()
-                for item, val in vals.items():
+                for item, val in list(vals.items()):
                     if item in half_stats:
                         new_vals[item] = str(int(val) // 2)
                     else:

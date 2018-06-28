@@ -74,7 +74,7 @@ def gtf_to_bed(gtf, alt_out_dir=None):
             chrom = feature.chrom
             start = feature.start - 1
             end = feature.end
-            attributes = feature.attributes.keys()
+            attributes = list(feature.attributes.keys())
             strand = feature.strand
             name = (feature['gene_name'][0] if 'gene_name' in attributes else
                     feature['gene_id'][0])
@@ -315,7 +315,7 @@ def tx2genefile(gtf, out_file=None, data=None, tsv=True):
         return out_file
     with file_transaction(data, out_file) as tx_out_file:
         with open(tx_out_file, "w") as out_handle:
-            for k, v in tx2genedict(gtf).items():
+            for k, v in list(tx2genedict(gtf).items()):
                 out_handle.write(sep.join([k, v]) + "\n")
     return out_file
 

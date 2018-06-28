@@ -47,7 +47,7 @@ TOOLS = {
                        bowtie2.galaxy_location_file, bowtie2.remap_index_fn),
     "hisat2": NgsTool(hisat2.align, None, None, hisat2.remap_index_fn)}
 
-metadata = {"support_bam": [k for k, v in TOOLS.items() if v.bam_align_fn is not None]}
+metadata = {"support_bam": [k for k, v in list(TOOLS.items()) if v.bam_align_fn is not None]}
 
 def organize_noalign(data):
     """CWL target to skip alignment and organize input data.
@@ -68,7 +68,7 @@ def align_to_sort_bam(fastq1, fastq2, aligner, data):
     if data.get("disambiguate"):
         align_dir_parts.append(data["disambiguate"]["genome_build"])
     aligner_index = _get_aligner_index(aligner, data)
-    align_dir = utils.safe_makedir(apply(os.path.join, align_dir_parts))
+    align_dir = utils.safe_makedir(os.path.join(*align_dir_parts))
     ref_file = tz.get_in(("reference", "fasta", "base"), data)
     if fastq1.endswith(".bam"):
         data = _align_from_bam(fastq1, aligner, aligner_index, ref_file,

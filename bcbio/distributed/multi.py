@@ -23,7 +23,7 @@ def runner(parallel, config):
         fn, fn_name = (fn_name, fn_name.__name__) if callable(fn_name) else (get_fn(fn_name, parallel), fn_name)
         logger.info("multiprocessing: %s" % fn_name)
         if "wrapper" in parallel:
-            wrap_parallel = {k: v for k, v in parallel.items() if k in set(["fresources", "checkpointed"])}
+            wrap_parallel = {k: v for k, v in list(parallel.items()) if k in set(["fresources", "checkpointed"])}
             items = [[fn_name] + parallel.get("wrapper_args", []) + [wrap_parallel] + list(x) for x in items]
         return run_multicore(fn, items, config, parallel=parallel)
     return run_parallel

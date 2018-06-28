@@ -192,17 +192,17 @@ def load_collectl(pattern, start_time, end_time):
                 'net': set(),
                 'proc': set(),
             }
-            for tstamp, sample in raw.items():
-                for group, items in sample.items():
+            for tstamp, sample in list(raw.items()):
+                for group, items in list(sample.items()):
                     if group == 'disk':
                         instances['disk'] = instances['disk'].union(
-                            items.keys())
+                            list(items.keys()))
                     elif group == 'net':
                         instances['net'] = instances['net'].union(
-                            items.keys())
+                            list(items.keys()))
                     elif group == 'proc':
                         instances['proc'] = instances['proc'].union(
-                            items.keys())
+                            list(items.keys()))
 
             cols = ['tstamp']
             cols.extend([
@@ -243,7 +243,7 @@ def load_collectl(pattern, start_time, end_time):
                      in ['name', 'read_bytes', 'write_bytes']
                      ])
 
-        for tstamp, sample in raw.items():
+        for tstamp, sample in list(raw.items()):
             if ('cpu' not in sample or
                 'disk' not in sample or
                 'mem' not in sample):

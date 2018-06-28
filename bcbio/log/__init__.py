@@ -82,7 +82,7 @@ def _create_log_handler(config, add_hostname=False, direct_hostname=False, write
 
     email = config.get("email", config.get("resources", {}).get("log", {}).get("email"))
     if email:
-        email_str = u'''Subject: [bcbio-nextgen] {record.extra[run]} \n\n {record.message}'''
+        email_str = '''Subject: [bcbio-nextgen] {record.extra[run]} \n\n {record.message}'''
         handlers.append(logbook.MailHandler(email, [email],
                                             format_string=email_str,
                                             level='INFO', bubble=True))

@@ -51,7 +51,7 @@ def somatic_batches(items):
             if batches:
                 for batch in batches:
                     data_by_batches[batch].append(data)
-    return data_by_batches.values(), somatic, non_somatic
+    return list(data_by_batches.values()), somatic, non_somatic
 
 def get_paired(items):
     return get_paired_bams([dd.get_align_bam(d) for d in items], items)
@@ -320,7 +320,7 @@ def _check_samples_nodups(fnames):
     for f in fnames:
         for s in get_samples(f):
             counts[s] += 1
-    duplicates = [s for s, c in counts.items() if c > 1]
+    duplicates = [s for s, c in list(counts.items()) if c > 1]
     if duplicates:
         raise ValueError("Duplicate samples found in inputs %s: %s" % (duplicates, fnames))
 

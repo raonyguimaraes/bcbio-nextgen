@@ -103,4 +103,4 @@ def create_dexseq_annotation(gff, count_file):
                                                                   cols[0], cols[3],
                                                                   cols[4],
                                                                   length, cols[6])
-                        print >>out_handle, line
+                        print(line, file=out_handle)

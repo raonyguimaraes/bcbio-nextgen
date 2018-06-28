@@ -28,7 +28,7 @@ def run(bam_file, data, out_dir):
             cmd += _get_input_args(bam_file, data, out_base)
             try:
                 do.run(cmd, "VerifyBamID contamination checks")
-            except subprocess.CalledProcessError, msg:
+            except subprocess.CalledProcessError as msg:
                 def allowed_errors(l):
                     return (l.find("Insufficient Available markers") >= 0 or
                             l.find("No reads found in any of the regions") >= 0)

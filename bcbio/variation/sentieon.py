@@ -31,12 +31,12 @@ def license_export(data):
                          "environmental variables to export \n"
                          "http://bcbio-nextgen.readthedocs.io/en/latest/contents/configuration.html#resources\n"
                          "Configuration: %s" % pprint.pformat(data))
-    if isinstance(server, basestring):
+    if isinstance(server, str):
         return "export SENTIEON_LICENSE=%s && " % server
     else:
         assert isinstance(server, dict), server
         exports = ""
-        for key, val in server.items():
+        for key, val in list(server.items()):
             exports += "export %s=%s && " % (key.upper(), val)
         return exports
 
@@ -47,7 +47,7 @@ def _get_interval(variant_regions, region, out_file, items):
     """
     target = shared.subset_variant_regions(variant_regions, region, out_file, items)
     if target:
-        if isinstance(target, basestring) and os.path.isfile(target):
+        if isinstance(target, str) and os.path.isfile(target):
             return "--interval %s" % target
         else:
             return "--interval %s" % bamprep.region_to_gatk(target)

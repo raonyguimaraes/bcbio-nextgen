@@ -27,6 +27,7 @@ from bcbio.qc import viral
 from bcbio.variation import annotation, effects, genotype, population, joint, vcfutils
 from bcbio.variation.cortex import get_sample_name
 from bcbio.bam.fastq import open_fastq
+from functools import reduce
 
 ALLOWED_CONTIG_NAME_CHARS = set(list(string.digits) + list(string.ascii_letters) + ["-", "_", "*", ":", "."])
 ALGORITHM_NOPATH_KEYS = ["variantcaller", "realign", "recalibrate", "peakcaller",
@@ -52,7 +53,7 @@ def organize(dirs, config, run_info_yaml, sample_names=None, is_cwl=False,
     run_details = _run_info_from_yaml(dirs, run_info_yaml, config, sample_names,
                                       is_cwl=is_cwl, integrations=integrations)
     remote_retriever = None
-    for iname, retriever in integrations.items():
+    for iname, retriever in list(integrations.items()):
         if iname in config:
             run_details = retriever.add_remotes(run_details, config[iname])
             remote_retriever = retriever
@@ -61,7 +62,7 @@ def organize(dirs, config, run_info_yaml, sample_names=None, is_cwl=False,
         item["dirs"] = dirs
         if "name" not in item:
             item["name"] = ["", item["description"]]
-        elif isinstance(item["name"], basestring):
+        elif isinstance(item["name"], str):
             description = "%s-%s" % (item["name"], clean_name(item["description"]))
             item["name"] = [item["name"], description]
             item["description"] = description
@@ -134,8 +135,8 @@ def _add_remote_resources(resources):
     """Retrieve remote resources like GATK/MuTect jars present in S3.
     """
     out = copy.deepcopy(resources)
-    for prog, info in resources.items():
-        for key, val in info.items():
+    for prog, info in list(resources.items()):
+        for key, val in list(info.items()):
             if key == "jar" and objectstore.is_remote(val):
                 store_dir = utils.safe_makedir(os.path.join(os.getcwd(), "inputs", "jars", prog))
                 fname = objectstore.download(val, store_dir, store_dir)
@@ -217,7 +218,7 @@ def _fill_validation_targets(data):
     """
     ref_file = dd.get_ref_file(data)
     sv_truth = tz.get_in(["config", "algorithm", "svvalidate"], data, {})
-    sv_targets = (zip(itertools.repeat("svvalidate"), sv_truth.keys()) if isinstance(sv_truth, dict)
+    sv_targets = (list(zip(itertools.repeat("svvalidate"), list(sv_truth.keys()))) if isinstance(sv_truth, dict)
                   else [["svvalidate"]])
     for vtarget in [list(xs) for xs in [["validate"], ["validate_regions"]] + sv_targets]:
         val = tz.get_in(["config", "algorithm"] + vtarget, data)
@@ -318,11 +319,11 @@ def _clean_algorithm(data):
     for key in ["variantcaller", "jointcaller", "svcaller"]:
         val = tz.get_in(["algorithm", key], data)
         if val:
-            if not isinstance(val, (list, tuple)) and isinstance(val, basestring):
+            if not isinstance(val, (list, tuple)) and isinstance(val, str):
                 val = [val]
             # check for cases like [false] or [None]
             if isinstance(val, (list, tuple)):
-                if len(val) == 1 and not val[0] or (isinstance(val[0], basestring)
+                if len(val) == 1 and not val[0] or (isinstance(val[0], str)
                                                     and val[0].lower() in ["none", "false"]):
                     val = False
             data["algorithm"][key] = val
@@ -337,10 +338,10 @@ def _clean_background(data):
     if val:
         out = {}
         # old style specification, single string for variant
-        if isinstance(val, basestring):
+        if isinstance(val, str):
             out["variant"] = _file_to_abs(val, [os.getcwd()])
         elif isinstance(val, dict):
-            for k, v in val.items():
+            for k, v in list(val.items()):
                 if k in allowed_keys:
                     out[k] = _file_to_abs(v, [os.getcwd()])
                 else:
@@ -431,7 +432,7 @@ def _check_for_problem_somatic_batches(items, config):
         if batches:
             for batch in batches:
                 data_by_batches[batch].append(data)
-    for batch, items in data_by_batches.items():
+    for batch, items in list(data_by_batches.items()):
         if vcfutils.get_paired(items):
             vcfutils.check_paired_problems(items)
         elif len(items) > 1:
@@ -510,7 +511,7 @@ def _check_algorithm_keys(item):
     Needs to be manually updated when introducing new keys, but avoids silent bugs
     with typos in key names.
     """
-    problem_keys = [k for k in item["algorithm"].iterkeys() if k not in ALGORITHM_KEYS]
+    problem_keys = [k for k in item["algorithm"].keys() if k not in ALGORITHM_KEYS]
     if len(problem_keys) > 0:
         raise ValueError("Unexpected configuration keyword in 'algorithm' section: %s\n"
                          "See configuration documentation for supported options:\n%s\n"
@@ -522,7 +523,7 @@ def _check_algorithm_values(item):
     - Identify incorrect boolean values where a choice is required.
     """
     problems = []
-    for k, v in item.get("algorithm", {}).items():
+    for k, v in list(item.get("algorithm", {}).items()):
         if v is True and k not in ALG_ALLOW_BOOLEANS:
             problems.append("%s set as true" % k)
         elif v is False and (k not in ALG_ALLOW_BOOLEANS and k not in ALG_ALLOW_FALSE):
@@ -536,12 +537,12 @@ def _check_algorithm_values(item):
 def _check_toplevel_misplaced(item):
     """Check for algorithm keys accidentally placed at the top level.
     """
-    problem_keys = [k for k in item.keys() if k in ALGORITHM_KEYS]
+    problem_keys = [k for k in list(item.keys()) if k in ALGORITHM_KEYS]
     if len(problem_keys) > 0:
         raise ValueError("Unexpected configuration keywords found in top level of %s: %s\n"
                          "This should be placed in the 'algorithm' section."
                          % (item["description"], problem_keys))
-    problem_keys = [k for k in item.keys() if k not in TOPLEVEL_KEYS]
+    problem_keys = [k for k in list(item.keys()) if k not in TOPLEVEL_KEYS]
     if len(problem_keys) > 0:
         raise ValueError("Unexpected configuration keywords found in top level of %s: %s\n"
                          % (item["description"], problem_keys))
@@ -570,7 +571,7 @@ def _detect_fastq_format(in_file, MAX_RECORDS=1000):
                 continue
             lmin = min(vals)
             lmax = max(vals)
-            for encoding, (emin, emax) in ranges.items():
+            for encoding, (emin, emax) in list(ranges.items()):
                 if encoding in possible:
                     if lmin < emin or lmax > emax:
                         possible.remove(encoding)
@@ -590,10 +591,10 @@ def _check_quality_format(items):
 
     for item in items:
         specified_format = item["algorithm"].get("quality_format", "standard").lower()
-        if specified_format not in SAMPLE_FORMAT.values():
+        if specified_format not in list(SAMPLE_FORMAT.values()):
             raise ValueError("Quality format specified in the YAML file"
                              "is not supported. Supported values are %s."
-                             % (SAMPLE_FORMAT.values()))
+                             % (list(SAMPLE_FORMAT.values())))
 
         fastq_file = next((file for file in item.get('files') or [] if
                            any([ext for ext in fastq_extensions if ext in file])), None)
@@ -613,7 +614,7 @@ def _check_quality_format(items):
 def _check_aligner(item):
     """Ensure specified aligner is valid choice.
     """
-    allowed = set(alignment.TOOLS.keys() + [None, False])
+    allowed = set(list(alignment.TOOLS.keys()) + [None, False])
     if item["algorithm"].get("aligner") not in allowed:
         raise ValueError("Unexpected algorithm 'aligner' parameter: %s\n"
                          "Supported options: %s\n" %
@@ -622,11 +623,11 @@ def _check_aligner(item):
 def _check_variantcaller(item):
     """Ensure specified variantcaller is a valid choice.
     """
-    allowed = set(genotype.get_variantcallers().keys() + [None, False])
+    allowed = set(list(genotype.get_variantcallers().keys()) + [None, False])
     vcs = item["algorithm"].get("variantcaller")
     if not isinstance(vcs, dict):
         vcs = {"variantcaller": vcs}
-    for vc_set in vcs.values():
+    for vc_set in list(vcs.values()):
         if not isinstance(vc_set, (tuple, list)):
             vc_set = [vc_set]
         problem = [x for x in vc_set if x not in allowed]
@@ -643,7 +644,7 @@ def _check_variantcaller(item):
 def _check_svcaller(item):
     """Ensure the provide structural variant caller is valid.
     """
-    allowed = set(reduce(operator.add, [d.keys() for d in structural._CALLERS.values()]) + [None, False])
+    allowed = set(reduce(operator.add, [list(d.keys()) for d in list(structural._CALLERS.values())]) + [None, False])
     svs = item["algorithm"].get("svcaller")
     if not isinstance(svs, (list, tuple)):
         svs = [svs]
@@ -730,9 +731,9 @@ def _file_to_abs(x, dnames, makedir=False):
     """
     if x is None or os.path.isabs(x):
         return x
-    elif isinstance(x, basestring) and objectstore.is_remote(x):
+    elif isinstance(x, str) and objectstore.is_remote(x):
         return x
-    elif isinstance(x, basestring) and x.lower() == "none":
+    elif isinstance(x, str) and x.lower() == "none":
         return None
     else:
         for dname in dnames:
@@ -751,7 +752,7 @@ def _normalize_files(item, fc_dir=None):
     """
     files = item.get("files")
     if files:
-        if isinstance(files, basestring):
+        if isinstance(files, str):
             files = [files]
         fastq_dir = flowcell.get_fastq_dir(fc_dir) if fc_dir else os.getcwd()
         files = [_file_to_abs(x, [os.getcwd(), fc_dir, fastq_dir]) for x in files]
@@ -838,7 +839,7 @@ def _run_info_from_yaml(dirs, run_info_yaml, config, sample_names=None,
         loaded = [x for x in loaded if x["description"] in sample_names]
 
     if integrations:
-        for iname, retriever in integrations.items():
+        for iname, retriever in list(integrations.items()):
             if iname in config:
                 config[iname] = retriever.set_cache(config[iname])
                 loaded = retriever.add_remotes(loaded, config[iname])
@@ -858,7 +859,7 @@ def _run_info_from_yaml(dirs, run_info_yaml, config, sample_names=None,
         if "upload" not in item:
             upload = global_config.get("upload", {})
             # Handle specifying a local directory directly in upload
-            if isinstance(upload, basestring):
+            if isinstance(upload, str):
                 upload = {"dir": upload}
             if not upload:
                 upload["dir"] = "../final"
@@ -874,21 +875,21 @@ def _run_info_from_yaml(dirs, run_info_yaml, config, sample_names=None,
         item["algorithm"] = genome.abs_file_paths(item["algorithm"],
                                                   ignore_keys=ALGORITHM_NOPATH_KEYS,
                                                   fileonly_keys=ALGORITHM_FILEONLY_KEYS,
-                                                  do_download=all(not x for x in integrations.values()))
+                                                  do_download=all(not x for x in list(integrations.values())))
         item["genome_build"] = str(item.get("genome_build", ""))
         item["algorithm"] = _add_algorithm_defaults(item["algorithm"], item.get("analysis", ""), is_cwl)
         item["metadata"] = add_metadata_defaults(item.get("metadata", {}))
         item["rgnames"] = prep_rg_names(item, config, fc_name, fc_date)
         if item.get("files"):
-            item["files"] = [genome.abs_file_paths(f, do_download=all(not x for x in integrations.values()))
+            item["files"] = [genome.abs_file_paths(f, do_download=all(not x for x in list(integrations.values())))
                              for f in item["files"]]
         elif "files" in item:
             del item["files"]
-        if item.get("vrn_file") and isinstance(item["vrn_file"], basestring):
+        if item.get("vrn_file") and isinstance(item["vrn_file"], str):
             inputs_dir = utils.safe_makedir(os.path.join(dirs.get("work", os.getcwd()), "inputs",
                                                          item["description"]))
             item["vrn_file"] = genome.abs_file_paths(item["vrn_file"],
-                                                     do_download=all(not x for x in integrations.values()))
+                                                     do_download=all(not x for x in list(integrations.values())))
             if os.path.isfile(item["vrn_file"]):
                 # Try to prepare in place (or use ready to go inputs)
                 try:
@@ -908,17 +909,17 @@ def _run_info_from_yaml(dirs, run_info_yaml, config, sample_names=None,
         # Add any global resource specifications
         if "resources" not in item:
             item["resources"] = {}
-        for prog, pkvs in resources.items():
+        for prog, pkvs in list(resources.items()):
             if prog not in item["resources"]:
                 item["resources"][prog] = {}
             if pkvs is not None:
-                for key, val in pkvs.items():
+                for key, val in list(pkvs.items()):
                     item["resources"][prog][key] = val
-        for iname, ivals in integration_config.items():
+        for iname, ivals in list(integration_config.items()):
             if ivals:
                 if iname not in item:
                     item[iname] = {}
-                for k, v in ivals.items():
+                for k, v in list(ivals.items()):
                     item[iname][k] = v
 
         run_details.append(item)
@@ -934,7 +935,7 @@ def add_metadata_defaults(md):
     """
     defaults = {"batch": None,
                 "phenotype": ""}
-    for k, v in defaults.items():
+    for k, v in list(defaults.items()):
         if k not in md:
             md[k] = v
     return md
@@ -988,17 +989,17 @@ def _add_algorithm_defaults(algorithm, analysis, is_cwl):
     convert_to_list = set(["tools_off", "tools_on", "hetcaller", "variantcaller", "qc", "disambiguate",
                            "vcfanno", "adapters", "custom_trim", "exclude_regions"])
     convert_to_single = set(["hlacaller", "indelcaller", "validate_method"])
-    for k, v in defaults.items():
+    for k, v in list(defaults.items()):
         if k not in algorithm:
             algorithm[k] = v
-    for k, v in algorithm.items():
+    for k, v in list(algorithm.items()):
         if k in convert_to_list:
             if v and not isinstance(v, (list, tuple)) and not isinstance(v, dict):
                 algorithm[k] = [v]
             # ensure dictionary specified inputs get converted into individual lists
             elif v and not isinstance(v, (list, tuple)) and isinstance(v, dict):
                 new = {}
-                for innerk, innerv in v.items():
+                for innerk, innerv in list(v.items()):
                     if innerv and not isinstance(innerv, (list, tuple)) and not isinstance(innerv, dict):
                         innerv = [innerv]
                     new[innerk] = innerv
@@ -1006,7 +1007,7 @@ def _add_algorithm_defaults(algorithm, analysis, is_cwl):
             elif v is None:
                 algorithm[k] = []
         elif k in convert_to_single:
-            if v and not isinstance(v, basestring):
+            if v and not isinstance(v, str):
                 if isinstance(v, (list, tuple)) and len(v) == 1:
                     algorithm[k] = v[0]
                 else:
@@ -1024,8 +1025,8 @@ def _replace_global_vars(xs, global_vars):
         return [_replace_global_vars(x) for x in xs]
     elif isinstance(xs, dict):
         final = {}
-        for k, v in xs.items():
-            if isinstance(v, basestring) and v in global_vars:
+        for k, v in list(xs.items()):
+            if isinstance(v, str) and v in global_vars:
                 v = global_vars[v]
             final[k] = v
         return final

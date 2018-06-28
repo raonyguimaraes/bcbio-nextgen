@@ -241,7 +241,7 @@ def _check_dedup(data):
         dup_param = utils.get_in(data, ("config", "algorithm", "mark_duplicates"), False)
     else:
         dup_param = utils.get_in(data, ("config", "algorithm", "mark_duplicates"), True)
-    if dup_param and isinstance(dup_param, basestring):
+    if dup_param and isinstance(dup_param, str):
         logger.info("Warning: bcbio no longer support explicit setting of mark_duplicate algorithm. "
                     "Using best-practice choice based on input data.")
         dup_param = True

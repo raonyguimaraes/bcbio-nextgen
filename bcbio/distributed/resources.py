@@ -9,6 +9,7 @@ import operator
 
 from bcbio.pipeline import config_utils
 from bcbio.log import logger
+from functools import reduce
 
 def _get_resource_programs(progs, algs):
     """Retrieve programs used in analysis based on algorithm configurations.
@@ -27,14 +28,14 @@ def _get_resource_programs(progs, algs):
                     out.add(aligner)
         elif p in ["variantcaller", "svcaller", "peakcaller"]:
             if p == "variantcaller":
-                for key, fn in parent_child.items():
+                for key, fn in list(parent_child.items()):
                     if fn(algs):
                         out.add(key)
             for alg in algs:
                 callers = alg.get(p)
                 if callers and not isinstance(callers, bool):
                     if isinstance(callers, dict):
-                        callers = reduce(operator.add, callers.values())
+                        callers = reduce(operator.add, list(callers.values()))
                     if isinstance(callers, (list, tuple)):
                         for x in callers:
                             out.add(x)
@@ -55,7 +56,7 @@ def _parent_prefix(prefix):
             vcs = alg.get("variantcaller")
             if vcs:
                 if isinstance(vcs, dict):
-                    vcs = reduce(operator.add, vcs.values())
+                    vcs = reduce(operator.add, list(vcs.values()))
                 if not isinstance(vcs, (list, tuple)):
                     vcs = [vcs]
                 return any(vc.startswith(prefix) for vc in vcs if vc)

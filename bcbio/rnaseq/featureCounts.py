@@ -65,7 +65,7 @@ def _change_sample_name(in_file, sample_name, data=None):
                 for line in in_handle:
                     if line.startswith("Status"):
                         line = "Status\t%s.bam" % sample_name
-                    print >>out_handle, line.strip()
+                    print(line.strip(), file=out_handle)
     return out_file
 
 def _format_count_file(count_file, data):

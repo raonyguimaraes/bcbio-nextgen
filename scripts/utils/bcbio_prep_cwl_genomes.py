@@ -28,7 +28,7 @@ def main(base_dir):
             copy_genome(genome_dir, genome_out_dir)
 
 def copy_genome(orig_dir, out_dir):
-    print(orig_dir, out_dir)
+    print((orig_dir, out_dir))
     to_copy = ["versions.csv", "bwa", "config", "coverage", "rnaseq", "rtg", "seq", "snpeff",
                "ucsc", "validation", "variation", "viral"]
     excludes = {"seq": ["*.fa.gz*", "*.old*", "perl"],
@@ -40,13 +40,13 @@ def copy_genome(orig_dir, out_dir):
         if os.path.isfile(os.path.join(orig_dir, copy)):
             shutil.copy(os.path.join(orig_dir, copy), out_dir)
         elif copy in to_tar and len(glob.glob(os.path.join(out_dir, "%s*-wf.tar.gz" % copy))) == 1:
-            print("already prepped: %s" % glob.glob(os.path.join(out_dir, "%s*-wf.tar.gz" % copy)))
+            print(("already prepped: %s" % glob.glob(os.path.join(out_dir, "%s*-wf.tar.gz" % copy))))
         else:
             cmd = ["rsync", "-avz"]
             for e in excludes.get(copy, []):
                 cmd += ["--exclude", e]
             cmd += ["%s/%s/" % (orig_dir, copy), "%s/%s/" % (out_dir, copy)]
-            print " ".join(cmd)
+            print(" ".join(cmd))
             subprocess.check_call(cmd)
             if copy in to_tar:
                 with utils.chdir(out_dir):
@@ -55,7 +55,7 @@ def copy_genome(orig_dir, out_dir):
                     if len(dir_files) == 1 and os.path.isdir(os.path.join(copy, dir_files[0])):
                         out_file += "--%s" % (dir_files[0])
                     out_file += "-wf.tar.gz"
-                    print("tarball", out_file)
+                    print(("tarball", out_file))
                     with tarfile.open(out_file, "w:gz") as tar:
                         tar.add(copy)
                     shutil.rmtree(copy)

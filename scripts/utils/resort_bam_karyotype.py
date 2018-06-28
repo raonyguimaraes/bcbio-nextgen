@@ -75,7 +75,7 @@ def _id_remapper(orig, new):
         new_chrom_to_index[chr_n] = i_n
     remap_indexes = {}
     for i_o, (chr_o, _) in enumerate(orig):
-        if chr_o in new_chrom_to_index.keys():
+        if chr_o in list(new_chrom_to_index.keys()):
             remap_indexes[i_o] = new_chrom_to_index[chr_o]
     remap_indexes[None] = None
     return remap_indexes

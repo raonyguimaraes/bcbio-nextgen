@@ -75,7 +75,7 @@ def install_cwl_test_files(data_dir):
             shutil.rmtree(dirname)
     try:
         if not os.path.exists(dirname):
-            print("Downloading CWL test directory: %s" % url)
+            print(("Downloading CWL test directory: %s" % url))
             os.chdir(os.path.dirname(dirname))
             r = requests.get(url)
             tf = tarfile.open(fileobj=io.BytesIO(r.content), mode='r|gz')

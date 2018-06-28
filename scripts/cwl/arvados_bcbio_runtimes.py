@@ -13,6 +13,7 @@ import pprint
 import sys
 
 import arrow
+from functools import reduce
 
 def main(run_uuid):
     out_file = "%s-stats.csv" % run_uuid
@@ -35,7 +36,7 @@ def main(run_uuid):
         name = "%s-%s" % (sample, name)
         if job["name"].startswith("variantcall_batch") and vc:
             name += "-%s" % vc
-        print(name, job["uuid"], job["log_uuid"])
+        print((name, job["uuid"], job["log_uuid"]))
         log = client.collections().get(uuid=job["log_uuid"]).execute()
         logc = Collection(log["portable_data_hash"])
         machine_info = get_machine_info(logc)
@@ -74,7 +75,7 @@ def get_runtime(logc):
 
 def get_in_inputs(key, data):
     if isinstance(data, dict):
-        for k, v in data.items():
+        for k, v in list(data.items()):
             if k == key:
                 return v
             elif isinstance(v, (list, tuple, dict)):
@@ -95,7 +96,7 @@ def get_sample_variantcaller(job):
         if f.endswith("-sort.bam"):
             sample = os.path.basename(f).replace("-sort.bam", "")
     if not sample or needs_json:
-        for k, v in job["mounts"].items():
+        for k, v in list(job["mounts"].items()):
             if k.endswith("cwl.inputs.json"):
                 c = Collection(v["portable_data_hash"])
                 with c.open("cwl.inputs.json", "r") as in_handle:

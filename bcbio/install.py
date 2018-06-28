@@ -3,7 +3,7 @@
 Enables automated installation tool and in-place updates to install additional
 data and software.
 """
-from __future__ import print_function
+
 import argparse
 import collections
 import contextlib
@@ -185,9 +185,9 @@ def _install_container_bcbio_system(datadir):
             expose_config = yaml.load(in_handle)
     else:
         expose_config = {"resources": {}}
-    for pname, vals in config["resources"].items():
+    for pname, vals in list(config["resources"].items()):
         expose_vals = {}
-        for k, v in vals.items():
+        for k, v in list(vals.items()):
             if k in expose:
                 expose_vals[k] = v
         if len(expose_vals) > 0 and pname not in expose_config["resources"]:
@@ -539,9 +539,9 @@ def _update_system_file(system_file, name, new_kvs):
         config = {}
     new_rs = {}
     added = False
-    for rname, r_kvs in config.get("resources", {}).items():
+    for rname, r_kvs in list(config.get("resources", {}).items()):
         if rname == name:
-            for k, v in new_kvs.items():
+            for k, v in list(new_kvs.items()):
                 r_kvs[k] = v
             added = True
         new_rs[rname] = r_kvs

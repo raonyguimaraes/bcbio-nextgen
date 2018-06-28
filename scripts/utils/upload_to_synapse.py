@@ -28,7 +28,7 @@ def main(wf_name, to_upload, synapse_parent_id):
                 if remote_filename not in remotes:
                     filename = os.path.join(dirpath, filename)
                     if os.path.getsize(filename) > 0:
-                        print("Uploading %s" % filename)
+                        print(("Uploading %s" % filename))
                         f = synapseclient.File(filename, parent=s_folder)
                         f.workflow = wf_name
                         f.workflowOption = "all"
